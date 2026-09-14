@@ -54,15 +54,15 @@
 <br>
 
 ---
-**V0.1.3**
+**V0.1.2**
 refactor: script.js to an external file 
 
 ---
-**V0.1.2**
+**V0.1.1**
 style: version info in all three places V0.1.2
 
 ---
-Cyber Battle **V0.1.1**  
+Cyber Battle **V0.1.0**  
 Feat: Placeholder page with PixiJS Imported properly
 
 ---
