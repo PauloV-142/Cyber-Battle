@@ -1,4 +1,4 @@
-# Cyber-Battle
+# Cyber-Battle V0.1.2
 Jogo de batalha de tanques entre duas pessoas num cenário visto de cima, com obstáculos na grid e power ups.
 
 ### Roadmap
@@ -10,3 +10,8 @@ Jogo de batalha de tanques entre duas pessoas num cenário visto de cima, com ob
 | Semana 4 |	23/09 a 29/09	| Hospedagem e integração dos jogos no catálogo web em PHP; elaboração do texto explicativo sobre o desenvolvimento técnico do jogo. |	Jogo integrado à plataforma centralizada. |
 | Semana 5 |	30/09 a 06/10	| Testes de usabilidade, correção de bugs, otimização e rodada interna de apresentações rápidas (pitch técnico entre as equipes). |	Feedback de pares e homologação final. |
 | Semana 6 |	07/10 a 20/10 |	Ajustes finais, testes de carga nos computadores do laboratório e recepção dos alunos e escolas visitantes durante a Semana Tecnológica (20 de outubro). |	Apresentação e interação pública no Laboratório. |
+
+### Versionamento
+Ler [Changelog.md](Changelog.md)
+
+#### Não tenha medo de aumentar a versão com commits, eu quero ver esses números subirem!!!!

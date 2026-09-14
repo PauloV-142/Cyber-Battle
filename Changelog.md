@@ -54,6 +54,10 @@
 <br>
 
 ---
+**V0.1.2**
+style: version info in all three places V0.1.2
+
+---
 Cyber Battle **V0.1.1**  
 Feat: Placeholder page with PixiJS Imported properly
 
