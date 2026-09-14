@@ -1,14 +1,18 @@
 // Since Pixijs 8.x , It's required to wrap the 'Application' in async function
 (async () => {
 
+
+gameScreen = document.getElementById('game-screen')
 // Setup
 
 const app = new PIXI.Application();
 
 // The only case await is needed, I think.
-await app.init({ width: 640, height: 360 });
+await app.init({ 
+    resizeTo: gameScreen
+});
 
-document.body.appendChild(app.canvas);
+gameScreen.appendChild(app.canvas);
 
 // Finished setup
 

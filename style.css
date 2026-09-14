@@ -1,3 +1,11 @@
 body {
     background-color: rgb(52, 51, 51);
+    margin: 0px;
+    padding: 0px;
+}
+
+#game-screen {
+    height: 30rem;
+    width: 40rem;
+    border: 1px red solid;
 }
