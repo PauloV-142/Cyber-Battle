@@ -54,8 +54,16 @@
 <br>
 
 ---
-Cyber Battle **V0.0.1**
+Cyber Battle **V0.1.1**  
+Feat: Placeholder page with PixiJS Imported properly
+
+---
+Cyber Battle **V0.0.1**  
 docs: Added changelog
+
+---
+Cyber Battle **V0.0.0**<br>
+chore: Nothing...
 
 ---
 
