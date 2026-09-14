@@ -1,4 +1,4 @@
-# Cyber-Battle V0.1.2
+# Cyber-Battle V0.1.3
 Jogo de batalha de tanques entre duas pessoas num cenário visto de cima, com obstáculos na grid e power ups.
 
 ### Roadmap

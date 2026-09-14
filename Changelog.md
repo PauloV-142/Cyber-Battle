@@ -54,6 +54,10 @@
 <br>
 
 ---
+**V0.1.3**
+refactor: script.js to an external file 
+
+---
 **V0.1.2**
 style: version info in all three places V0.1.2
 
