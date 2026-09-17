@@ -1,39 +1,37 @@
-// Since Pixijs 8.x , It's required to wrap the 'Application' in async function
-(async () => {
+const config = {
+    type: Phaser.Auto, //WebGL default
+    width: 800,
+    height: 600,
+    scene: { // Further info later
+        preload: preload,
+        create: create,
+        update: update
+    },
+    pysics: {
+            default: 'topView', // TODO: add colision
+            topView: {
+                gravity: { y: 0 }, 
+                debug: false
+            }
+        },
+}
 
+var game = new Phaser.Game(config);
 
-gameScreen = document.getElementById('game-screen')
-// Setup
+function preload() // Setup function (load assets)
+{
+    // 'sky' is the key for the image asset
+    this.load.image('tank', 'assets/basic_blue_tank.png');
+}
 
-const app = new PIXI.Application();
+function create() // Create the scene, renders, world building
+{
+    // all objects are positioned based on their center
+    this.add.image(400, 300, 'tank');
+    this.add.image(400, 400, 'tank');
+}
 
-// The only case await is needed, I think.
-await app.init({ 
-    resizeTo: gameScreen
-});
+function update() {
 
-gameScreen.appendChild(app.canvas);
+}
 
-// Finished setup
-
-// Needed to create a 'layer' to be filled with content
-const boxes = new PIXI.Graphics();
-
-// Creates the first box and then Fills it, finishing it's creation
-boxes.rect(50, 50, 150, 100);
-boxes.fill(0xff0000);
-
-// Same thing, when a shape is filled, another one can be created
-boxes.rect(200, 200, 150, 100);
-boxes.fill(0x00ff00);
-
-// Add the 'layer' to stage
-app.stage.addChild(boxes);
-
-})(); // The async function is executed immediately after creation, so it just runs the code
-
-/* Observations & Tips:
-
-When you're calling a constructor or something directly from PixiJS, you need to use: PIXI.Thing (Just like python imports)
-
-*/

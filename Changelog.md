@@ -4,7 +4,7 @@
 ### Put the Version Number in the commit name! They are simpler than you imagine, see below!
 ---
 
-## [Changelog Convention](https://gist.github.com/qoomon/5dfcdf8eec66a051ecd85625518cfd13)
+## [Commits Convention](https://gist.github.com/qoomon/5dfcdf8eec66a051ecd85625518cfd13)
 
 ### Commit names - Look here:
 
@@ -31,21 +31,6 @@
 
 ---
 
-### Versioning
-```js
-// Put the version number in:
-- In the `Commit Message` // To track
-- In the `index.html` <title> // So the user can see it
-- In the `README.md` // For astethic 
-```
-
-#### If your next release (e.g. merge of branch to main) contains commit with...
-- **Breaking Changes** increment the ***major*** version: **1.x.x**  
-- **API relevant changes** (`feat` or `fix`) increment the ***minor*** version: **x.1.x**  
-- **Else** (`style`, `test`, `docs`, `build`, `ops` or `chore`) increment the ***patch*** version: **x.x.1**
-
----
-
 ## # Changelog ends here, Latest version is:
 > Append your changes here:
 
@@ -54,24 +39,9 @@
 <br>
 
 ---
-**V0.1.2**
-refactor: script.js to an external file 
 
----
-**V0.1.1**
-style: version info in all three places V0.1.2
-
----
-Cyber Battle **V0.1.0**  
-Feat: Placeholder page with PixiJS Imported properly
-
----
-Cyber Battle **V0.0.1**  
-docs: Added changelog
-
----
 Cyber Battle **V0.0.0**<br>
-chore: Nothing...
+chore: PhaserJS setup done
 
 ---
 
