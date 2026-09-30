@@ -38,6 +38,12 @@
 <br>
 <br>
 
+Feat: 2nd player with WASD V0.0.2
+
+---
+
+Feat: Rotation and wovement without acceleration V0.0.1
+
 ---
 
 Cyber Battle **V0.0.0**<br>
