@@ -8,12 +8,12 @@ const config = {
         update: update
     },
     physics: {
-            default: 'arcade', 
-            topView: {
-                gravity: { y: 0 }, 
-                debug: true
-            }
-        },
+        default: 'arcade',
+        topView: {
+            gravity: { y: 0 },
+            debug: true
+        }
+    },
 }
 
 var game = new Phaser.Game(config);
@@ -21,36 +21,93 @@ var game = new Phaser.Game(config);
 function preload() // Setup function (load assets)
 {
     // 'sky' is the key for the image asset
-    this.load.image('player1', 'assets/basic_blue_player.png');
+    this.load.image('player1', 'assets/Cyber_1.png');
+    this.load.image('ball_projectile', 'assets/Bullet_1.png')
 }
+
+/* OBJECTS */
+var canonProperties = {
+    cooldown: 100,
+}
+
+var ballProprierties = {
+    damage: 10,
+    speed: 300,
+    lifetime: 1800,
+    owner: undefined, // The player who shoot the projectile
+    hitbox: undefined,
+    image: 'ball_projectile'
+}
+
+var tank1Properties = { // These are the values that will change based on the user choices.
+    rotationSpeed: Phaser.Math.DegToRad(2),
+    movementSpeed: 80,
+    drag: 0.5,
+    life: undefined,
+    muzzleOffset: 5,
+    projectile: ballProprierties,
+    canon: canonProperties
+}
+
+var tank2Properties = { // These are the values that will change based on the user choices.
+    rotationSpeed: Phaser.Math.DegToRad(2),
+    movementSpeed: 80,
+    drag: 0.5,
+    life: undefined,
+    muzzleOffset: 5,
+    projectile: ballProprierties,
+    canon: canonProperties
+}
+
+/* END OBJECTS */
 
 function create() // Create the scene, renders, world building
 {
-    
+
     // all objects are positioned based on their center
     this.player1 = this.physics.add.sprite(400, 300, 'player1') // Sprite with physics
     this.player2 = this.physics.add.sprite(400, 300, 'player1')
 
     this.player1.setCollideWorldBounds(true); // Doesn't exit the scene borders
     this.player2.setCollideWorldBounds(true);
-    
+
+    this.player1.setScale(0.2)
+    this.player2.setScale(0.2)
+
     //player1
-    this.arrowKeys = this.input.keyboard.createCursorKeys(); // Arrow keys (a.k.a. cursors)
+    this.player1Input = this.input.keyboard.addKeys({// Use numpad
+        up: Phaser.Input.Keyboard.KeyCodes.UP,
+        down: Phaser.Input.Keyboard.KeyCodes.DOWN,
+        left: Phaser.Input.Keyboard.KeyCodes.LEFT,
+        right: Phaser.Input.Keyboard.KeyCodes.RIGHT,
+        shoot: Phaser.Input.Keyboard.KeyCodes.L 
+    });
 
     //player2
-    this.wasd = this.input.keyboard.addKeys({
+    this.player2Input = this.input.keyboard.addKeys({
         up: Phaser.Input.Keyboard.KeyCodes.W,
         down: Phaser.Input.Keyboard.KeyCodes.S,
         left: Phaser.Input.Keyboard.KeyCodes.A,
-        right: Phaser.Input.Keyboard.KeyCodes.D
+        right: Phaser.Input.Keyboard.KeyCodes.D,
+        shoot: Phaser.Input.Keyboard.KeyCodes.SPACE
     });
 
-}
+    /* Projectiles */
 
-var tankProperties = { // These are the values that will change based on the user choices.
-    rotationSpeed: Phaser.Math.DegToRad(2),
-    movementSpeed: 80,
-    drag: 0.5
+    // Define the existence of the projectile group
+    this.player1Projectiles = this.physics.add.group({
+        defaultKey: ballProprierties.image,
+        maxSize: 15
+    })
+    
+    this.player2Projectiles = this.physics.add.group({
+        defaultKey: ballProprierties.image,
+        maxSize: 15
+    })
+
+    this.player1LastShot = 0;
+    this.player2LastShot = 0;
+
 }
 
 function update() { // Game mainloop
@@ -58,26 +115,26 @@ function update() { // Game mainloop
     // Movement speed
     this.player1.setVelocity(0); // Reset velocity between frames (no acceleration)
     this.player2.setVelocity(0); // Reset velocity between frames (no acceleration)
-    
-    
-    
-    // Player1 movement
-    
-    // Rotation
-    
-    if (this.arrowKeys.left.isDown) this.player1.rotation -= tankProperties.rotationSpeed;
-    else if (this.arrowKeys.right.isDown) this.player1.rotation += tankProperties.rotationSpeed;
 
-    if (this.arrowKeys.up.isDown) {
+
+
+    // Player1 movement
+
+    // Rotation
+
+    if (this.player1Input.left.isDown) this.player1.rotation -= tank1Properties.rotationSpeed;
+    else if (this.player1Input.right.isDown) this.player1.rotation += tank1Properties.rotationSpeed;
+
+    if (this.player1Input.up.isDown) {
         this.player1.setVelocity(
-            Math.cos(this.player1.rotation) * tankProperties.movementSpeed,
-            Math.sin(this.player1.rotation) * tankProperties.movementSpeed,
-        );      
+            Math.cos(this.player1.rotation) * tank1Properties.movementSpeed,
+            Math.sin(this.player1.rotation) * tank1Properties.movementSpeed,
+        );
     }
-    if (this.arrowKeys.down.isDown) {
+    if (this.player1Input.down.isDown) {
         this.player1.setVelocity(
-            Math.cos(this.player1.rotation) * tankProperties.movementSpeed * -1,
-            Math.sin(this.player1.rotation) * tankProperties.movementSpeed * -1,
+            Math.cos(this.player1.rotation) * tank1Properties.movementSpeed * -1,
+            Math.sin(this.player1.rotation) * tank1Properties.movementSpeed * -1,
         );
 
     };
@@ -85,23 +142,73 @@ function update() { // Game mainloop
 
     // Player2 movement
     // Rotation
-    if (this.wasd.left.isDown) this.player2.rotation -= tankProperties.rotationSpeed;
-    else if (this.wasd.right.isDown) this.player2.rotation += tankProperties.rotationSpeed;
+    if (this.player2Input.left.isDown) this.player2.rotation -= tank2Properties.rotationSpeed;
+    else if (this.player2Input.right.isDown) this.player2.rotation += tank2Properties.rotationSpeed;
 
-    if (this.wasd.up.isDown) {
+    if (this.player2Input.up.isDown) {
         this.player2.setVelocity(
-            Math.cos(this.player2.rotation) * tankProperties.movementSpeed,
-            Math.sin(this.player2.rotation) * tankProperties.movementSpeed,
-        );      
+            Math.cos(this.player2.rotation) * tank2Properties.movementSpeed,
+            Math.sin(this.player2.rotation) * tank2Properties.movementSpeed,
+        );
     }
-    if (this.wasd.down.isDown) {
+    if (this.player2Input.down.isDown) {
         this.player2.setVelocity(
-            Math.cos(this.player2.rotation) * tankProperties.movementSpeed * -1,
-            Math.sin(this.player2.rotation) * tankProperties.movementSpeed * -1,
+            Math.cos(this.player2.rotation) * tank2Properties.movementSpeed * -1,
+            Math.sin(this.player2.rotation) * tank2Properties.movementSpeed * -1,
         );
 
     };
 
-    
+
+    // shooting
+
+    // Create the projectile (it is a variable)
+
+    // Select projectile
+    // Depends on which shooting button was pressed (E for p1; L for p2)
+    console.log(this.time.now, this.player1LastShot, this.player2LastShot);
+    if (this.player1Input.shoot.isDown && this.time.now > this.player1LastShot + tank1Properties.canon.cooldown) {
+        shootProjectile(this, this.player1, tank1Properties.projectile, this.player1Projectiles);
+        this.player1LastShot = this.time.now;
+        console.log('p1 shooting');
+    }
+    if (this.player2Input.shoot.isDown && this.time.now > this.player2LastShot + tank2Properties.canon.cooldown) {// && this.time.now > this.player2LastShot + tank2Properties.canon.cooldown) {
+        shootProjectile(this, this.player2, tank2Properties.projectile, this.player2Projectiles);
+        this.player2LastShot = this.time.now;
+    }
+
+    function shootProjectile(scene, player, projectileData, projectileGroup) {
+
+        // Based on the player who shoot:
+
+        const spawnX = player.x + Math.cos(player.rotation) * player.muzzleOffset; // + muzzleOffset; // Spawn at the cannon, not inside the player
+        const spawnY = player.y + Math.sin(player.rotation) * player.muzzleOffset; // + muzzleOffset;
+
+        const projectile = projectileGroup.get(spawnX, spawnY) // Create the projectile based on the coordinates where it should appear
+
+        // Load projectile data 
+        if (!projectile) return;
+
+        projectile.setActive(true);
+        projectile.setVisible(true);
+        projectile.setData('damage',  projectileData.damage);
+        projectile.setData('lifetime',  projectileData.lifetime);
+        projectile.setData('owner',  player);
+        projectile.setData('hitbox',  projectileData.hitbox);
+        projectile.setData('image',  projectileData.image);
+        
+        // projectile.setData('speed',  projectileData.speed);
+
+        projectile.setVelocity(
+            Math.cos(player.rotation) * projectileData.speed,
+            Math.sin(player.rotation) * projectileData.speed
+        )
+
+        scene.time.delayedCall(projectileData.lifetime, () => {
+            if (projectile.active) {
+                projectile.destroy();
+            }
+        });
+    }
 }
 
