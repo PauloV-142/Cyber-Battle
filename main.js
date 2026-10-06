@@ -1,7 +1,7 @@
 const config = {
     type: Phaser.Auto, //WebGL default
-    width: 800,
-    height: 600,
+    width: 1920, //1920x1080
+    height: 1080,
     scene: { // the this.property refers to here
         preload: preload,
         create: create,
@@ -21,8 +21,8 @@ var game = new Phaser.Game(config);
 function preload() // Setup function (load assets)
 {
     // 'sky' is the key for the image asset
-    this.load.image('player1', 'assets/Cyber_1.png');
-    this.load.image('ball_projectile', 'assets/Bullet_1.png')
+    this.load.image('player1', 'assets/tank_1.png');
+    this.load.image('ball_projectile', 'assets/ball_bullet.png')
 }
 
 /* OBJECTS */
@@ -74,6 +74,9 @@ function create() // Create the scene, renders, world building
     this.player1.setScale(0.2)
     this.player2.setScale(0.2)
 
+    this.player1.muzzleOffset = tank1Properties.muzzleOffset;
+    this.player2.muzzleOffset = tank2Properties.muzzleOffset;
+
     //player1
     this.player1Input = this.input.keyboard.addKeys({// Use numpad
         up: Phaser.Input.Keyboard.KeyCodes.UP,
@@ -82,6 +85,7 @@ function create() // Create the scene, renders, world building
         right: Phaser.Input.Keyboard.KeyCodes.RIGHT,
         shoot: Phaser.Input.Keyboard.KeyCodes.L 
     });
+
 
     //player2
     this.player2Input = this.input.keyboard.addKeys({
@@ -97,14 +101,15 @@ function create() // Create the scene, renders, world building
     // Define the existence of the projectile group
     this.player1Projectiles = this.physics.add.group({
         defaultKey: ballProprierties.image,
-        maxSize: 15
+        maxSize: 30 // Quantity of projectiles in the scene
     })
     
     this.player2Projectiles = this.physics.add.group({
         defaultKey: ballProprierties.image,
-        maxSize: 15
+        maxSize: 30
     })
 
+    // for cooldown
     this.player1LastShot = 0;
     this.player2LastShot = 0;
 
@@ -115,8 +120,6 @@ function update() { // Game mainloop
     // Movement speed
     this.player1.setVelocity(0); // Reset velocity between frames (no acceleration)
     this.player2.setVelocity(0); // Reset velocity between frames (no acceleration)
-
-
 
     // Player1 movement
 
@@ -166,13 +169,20 @@ function update() { // Game mainloop
 
     // Select projectile
     // Depends on which shooting button was pressed (E for p1; L for p2)
-    console.log(this.time.now, this.player1LastShot, this.player2LastShot);
-    if (this.player1Input.shoot.isDown && this.time.now > this.player1LastShot + tank1Properties.canon.cooldown) {
+    
+    const player1cooldownFinished = this.time.now > this.player1LastShot + tank1Properties.canon.cooldown;
+    
+    // this.player1Input.shoot.isDown // Use this for continuous shooting on holding
+    if (Phaser.Input.Keyboard.JustDown(this.player1Input.shoot) && player1cooldownFinished) {
         shootProjectile(this, this.player1, tank1Properties.projectile, this.player1Projectiles);
         this.player1LastShot = this.time.now;
         console.log('p1 shooting');
     }
-    if (this.player2Input.shoot.isDown && this.time.now > this.player2LastShot + tank2Properties.canon.cooldown) {// && this.time.now > this.player2LastShot + tank2Properties.canon.cooldown) {
+
+    const player2cooldownFinished = this.time.now > this.player2LastShot + tank2Properties.canon.cooldown;
+    
+    // this.player2Input.shoot.isDown
+    if (Phaser.Input.Keyboard.JustDown(this.player2Input.shoot) && player2cooldownFinished) {
         shootProjectile(this, this.player2, tank2Properties.projectile, this.player2Projectiles);
         this.player2LastShot = this.time.now;
     }
