@@ -1,7 +1,12 @@
 const config = {
     type: Phaser.Auto, //WebGL default
-    width: 1920, //1920x1080
-    height: 1080,
+    scale: {
+        mode: Phaser.Scale.FIT,
+        autoCenter: Phaser.Scale.CENTER_BOTH,
+        width: 1920, // This -> 1920x1080 is the size of the background image.
+        height: 1080,
+    },
+    parent: 'game-screen',
     scene: { // the this.property refers to here
         preload: preload,
         create: create,

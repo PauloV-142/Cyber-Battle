@@ -1,3 +1,3 @@
 # Melhorar
-- [x] Quantidade de tiros (sprites) na tela é limitada
-- [x] Quantidade de teclas simultâneas apertadas é limitada (ruim pra 2 players)
+- O elemento canvas deve ter um tamanho específico, mas deve ainda sim se conter dentro da tela cheia do navegador
+- Interações entre tiros e tanques (vida, etc...)
