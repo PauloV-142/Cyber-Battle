@@ -1,7 +1,8 @@
 const config = {
     type: Phaser.Auto, //WebGL default
-    width: 800,
-    height: 600,
+    parent: 'game-screen',
+    width: 1920,
+    height: 1088,
     scene: { // the this.property refers to here
         preload: preload,
         create: create,
@@ -20,7 +21,12 @@ var game = new Phaser.Game(config);
 
 function preload() // Setup function (load assets)
 {
-    // 'sky' is the key for the image asset
+    this.load.tilemapTiledJSON('techMap', 'assets/TechMap01.json');
+    this.load.image('techMapPreview', 'assets/TechMapPreview.png');
+    this.load.image('techMapAssets', 'assets/TechMap.png');
+    this.load.image('techMapHelicopter', 'assets/TechMapHelicopter.png');
+    this.load.image('techMapHelipad', 'assets/TechMapHelipad.png');
+    this.load.image('concreteFloor', 'assets/ConcreteFloor.png');
     this.load.image('player1', 'assets/Cyber_1.png');
     this.load.image('ball_projectile', 'assets/Bullet_1.png')
 }
@@ -64,12 +70,29 @@ var tank2Properties = { // These are the values that will change based on the us
 function create() // Create the scene, renders, world building
 {
 
+    const map = this.make.tilemap({ key: 'techMap' });
+    const baseTileset = map.addTilesetImage('TechMapAssets', 'techMapAssets');
+    this.add.image(0, 0, 'techMapPreview').setOrigin(0).setDepth(-1);
+
+    const buildingsLayer = map.createStaticLayer('buildings', baseTileset, 0, 0);
+    buildingsLayer.setVisible(false);
+
+    buildingsLayer.setCollisionByExclusion([-1, 0]);
+
+    this.physics.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+
     // all objects are positioned based on their center
-    this.player1 = this.physics.add.sprite(400, 300, 'player1') // Sprite with physics
-    this.player2 = this.physics.add.sprite(400, 300, 'player1')
+    this.player1 = this.physics.add.sprite(32, 352, 'player1') // Sprite with physics
+    this.player2 = this.physics.add.sprite(1884, 792, 'player1')
 
     this.player1.setCollideWorldBounds(true); // Doesn't exit the scene borders
     this.player2.setCollideWorldBounds(true);
+    this.physics.add.collider(this.player1, buildingsLayer);
+    this.physics.add.collider(this.player2, buildingsLayer);
+    this.physics.add.collider(this.player1, this.player2);
+    this.cameras.main.stopFollow();
+    this.cameras.main.setZoom(1);
+    this.cameras.main.centerOn(map.widthInPixels / 2, map.heightInPixels / 2);
 
     this.player1.setScale(0.2)
     this.player2.setScale(0.2)
