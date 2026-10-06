@@ -27,8 +27,8 @@ function preload() // Setup function (load assets)
     this.load.image('techMapHelicopter', 'assets/TechMapHelicopter.png');
     this.load.image('techMapHelipad', 'assets/TechMapHelipad.png');
     this.load.image('concreteFloor', 'assets/ConcreteFloor.png');
-    this.load.image('player1', 'assets/Cyber_1.png');
-    this.load.image('ball_projectile', 'assets/Bullet_1.png')
+    this.load.image('player1', 'assets/tank_1.png');
+    this.load.image('ball_projectile', 'assets/ball_bullet.png')
 }
 
 /* OBJECTS */
@@ -94,14 +94,24 @@ function create() // Create the scene, renders, world building
     this.cameras.main.setZoom(1);
     this.cameras.main.centerOn(map.widthInPixels / 2, map.heightInPixels / 2);
 
-    this.player1.setScale(0.2)
-    this.player2.setScale(0.2)
+    this.player1.setScale(0.42)
+    this.player2.setScale(0.42).setAngle(180)
 
     this.player1.muzzleOffset = tank1Properties.muzzleOffset;
     this.player2.muzzleOffset = tank2Properties.muzzleOffset;
 
+
     //player1
-    this.player1Input = this.input.keyboard.addKeys({// Use numpad
+    this.player1Input = this.input.keyboard.addKeys({
+        up: Phaser.Input.Keyboard.KeyCodes.W,
+        down: Phaser.Input.Keyboard.KeyCodes.S,
+        left: Phaser.Input.Keyboard.KeyCodes.A,
+        right: Phaser.Input.Keyboard.KeyCodes.D,
+        shoot: Phaser.Input.Keyboard.KeyCodes.SPACE
+    });
+
+    //player2
+    this.player2Input = this.input.keyboard.addKeys({// Use numpad
         up: Phaser.Input.Keyboard.KeyCodes.UP,
         down: Phaser.Input.Keyboard.KeyCodes.DOWN,
         left: Phaser.Input.Keyboard.KeyCodes.LEFT,
@@ -110,26 +120,17 @@ function create() // Create the scene, renders, world building
     });
 
 
-    //player2
-    this.player2Input = this.input.keyboard.addKeys({
-        up: Phaser.Input.Keyboard.KeyCodes.W,
-        down: Phaser.Input.Keyboard.KeyCodes.S,
-        left: Phaser.Input.Keyboard.KeyCodes.A,
-        right: Phaser.Input.Keyboard.KeyCodes.D,
-        shoot: Phaser.Input.Keyboard.KeyCodes.SPACE
-    });
-
     /* Projectiles */
 
     // Define the existence of the projectile group
     this.player1Projectiles = this.physics.add.group({
         defaultKey: ballProprierties.image,
-        maxSize: 30 // Quantity of projectiles in the scene
+        maxSize: 1 // Quantity of projectiles in the scene
     })
     
     this.player2Projectiles = this.physics.add.group({
         defaultKey: ballProprierties.image,
-        maxSize: 30
+        maxSize: 1
     })
 
     // for cooldown
