@@ -82,8 +82,11 @@ function create() // Create the scene, renders, world building
     this.physics.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
 
     // all objects are positioned based on their center
-    this.player1 = this.physics.add.sprite(32, 352, 'player1') // Sprite with physics
-    this.player2 = this.physics.add.sprite(1884, 792, 'player1')
+    this.player1 = this.physics.add.sprite(88, 367, 'player1') // Sprite with physics
+    this.player2 = this.physics.add.sprite(1830, 782, 'player1')
+    this.player1.name = "player1";
+    this.player2.name = "player2";
+    
 
     this.player1.setCollideWorldBounds(true); // Doesn't exit the scene borders
     this.player2.setCollideWorldBounds(true);
@@ -133,10 +136,14 @@ function create() // Create the scene, renders, world building
         maxSize: 1
     })
 
+    this.physics.add.collider(this.player1Projectiles, buildingsLayer);
+    this.physics.add.collider(this.player2Projectiles, buildingsLayer);
+
+    
+
     // for cooldown
     this.player1LastShot = 0;
     this.player2LastShot = 0;
-
 }
 
 function update() { // Game mainloop
@@ -186,7 +193,10 @@ function update() { // Game mainloop
 
     };
 
+    //console.log(`${this.player1}` + this.player1.x);
+    //console.log(`${this.player1}` + this.player1.y);
 
+    
     // shooting
 
     // Create the projectile (it is a variable)
@@ -217,6 +227,7 @@ function update() { // Game mainloop
 
         const spawnX = player.x + Math.cos(player.rotation) * player.muzzleOffset; // + muzzleOffset; // Spawn at the cannon, not inside the player
         const spawnY = player.y + Math.sin(player.rotation) * player.muzzleOffset; // + muzzleOffset;
+
 
         const projectile = projectileGroup.get(spawnX, spawnY) // Create the projectile based on the coordinates where it should appear
 
