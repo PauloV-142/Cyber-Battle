@@ -1,3 +1,17 @@
+# Feat: Adding Map V0.1.0
+- The map has been added;
+- Building collision;
+- Tanks collision;
+
+# Fix: Updating the bulltet and tank asset properties V0.1.1: 
+- Player2's tank direction has been fixed;
+- The tanks are a little bigger now;
+- The bullets now have a lower limit;
+
+# Feat: Bullet collision V0.1.2
+- The bullet now collide on the buildings
+- Setting a name to the asset
+
 **Versionamento**
 
 Sistema que registra as mudanças feitas em um arquivo ou em conjunto de arquivos.
@@ -76,3 +90,4 @@ Questões:
 3\)    
 4\)   
 5\) c)
+

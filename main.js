@@ -25,7 +25,12 @@ var game = new Phaser.Game(config);
 
 function preload() // Setup function (load assets)
 {
-    // 'sky' is the key for the image asset
+    this.load.tilemapTiledJSON('techMap', 'assets/TechMap01.json');
+    this.load.image('techMapPreview', 'assets/TechMapPreview.png');
+    this.load.image('techMapAssets', 'assets/TechMap.png');
+    this.load.image('techMapHelicopter', 'assets/TechMapHelicopter.png');
+    this.load.image('techMapHelipad', 'assets/TechMapHelipad.png');
+    this.load.image('concreteFloor', 'assets/ConcreteFloor.png');
     this.load.image('player1', 'assets/tank_1.png');
     this.load.image('ball_projectile', 'assets/ball_bullet.png')
 }
@@ -69,21 +74,51 @@ var tank2Properties = { // These are the values that will change based on the us
 function create() // Create the scene, renders, world building
 {
 
+    const map = this.make.tilemap({ key: 'techMap' });
+    const baseTileset = map.addTilesetImage('TechMapAssets', 'techMapAssets');
+    this.add.image(0, 0, 'techMapPreview').setOrigin(0).setDepth(-1);
+
+    const buildingsLayer = map.createStaticLayer('buildings', baseTileset, 0, 0);
+    buildingsLayer.setVisible(false);
+
+    buildingsLayer.setCollisionByExclusion([-1, 0]);
+
+    this.physics.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+
     // all objects are positioned based on their center
-    this.player1 = this.physics.add.sprite(400, 300, 'player1') // Sprite with physics
-    this.player2 = this.physics.add.sprite(400, 300, 'player1')
+    this.player1 = this.physics.add.sprite(88, 367, 'player1') // Sprite with physics
+    this.player2 = this.physics.add.sprite(1830, 782, 'player1')
+    this.player1.name = "player1";
+    this.player2.name = "player2";
+    
 
     this.player1.setCollideWorldBounds(true); // Doesn't exit the scene borders
     this.player2.setCollideWorldBounds(true);
+    this.physics.add.collider(this.player1, buildingsLayer);
+    this.physics.add.collider(this.player2, buildingsLayer);
+    this.physics.add.collider(this.player1, this.player2);
+    this.cameras.main.stopFollow();
+    this.cameras.main.setZoom(1);
+    this.cameras.main.centerOn(map.widthInPixels / 2, map.heightInPixels / 2);
 
-    this.player1.setScale(0.2)
-    this.player2.setScale(0.2)
+    this.player1.setScale(0.42)
+    this.player2.setScale(0.42).setAngle(180)
 
     this.player1.muzzleOffset = tank1Properties.muzzleOffset;
     this.player2.muzzleOffset = tank2Properties.muzzleOffset;
 
+
     //player1
-    this.player1Input = this.input.keyboard.addKeys({// Use numpad
+    this.player1Input = this.input.keyboard.addKeys({
+        up: Phaser.Input.Keyboard.KeyCodes.W,
+        down: Phaser.Input.Keyboard.KeyCodes.S,
+        left: Phaser.Input.Keyboard.KeyCodes.A,
+        right: Phaser.Input.Keyboard.KeyCodes.D,
+        shoot: Phaser.Input.Keyboard.KeyCodes.SPACE
+    });
+
+    //player2
+    this.player2Input = this.input.keyboard.addKeys({// Use numpad
         up: Phaser.Input.Keyboard.KeyCodes.UP,
         down: Phaser.Input.Keyboard.KeyCodes.DOWN,
         left: Phaser.Input.Keyboard.KeyCodes.LEFT,
@@ -92,32 +127,27 @@ function create() // Create the scene, renders, world building
     });
 
 
-    //player2
-    this.player2Input = this.input.keyboard.addKeys({
-        up: Phaser.Input.Keyboard.KeyCodes.W,
-        down: Phaser.Input.Keyboard.KeyCodes.S,
-        left: Phaser.Input.Keyboard.KeyCodes.A,
-        right: Phaser.Input.Keyboard.KeyCodes.D,
-        shoot: Phaser.Input.Keyboard.KeyCodes.SPACE
-    });
-
     /* Projectiles */
 
     // Define the existence of the projectile group
     this.player1Projectiles = this.physics.add.group({
         defaultKey: ballProprierties.image,
-        maxSize: 30 // Quantity of projectiles in the scene
+        maxSize: 1 // Quantity of projectiles in the scene
     })
     
     this.player2Projectiles = this.physics.add.group({
         defaultKey: ballProprierties.image,
-        maxSize: 30
+        maxSize: 1
     })
+
+    this.physics.add.collider(this.player1Projectiles, buildingsLayer);
+    this.physics.add.collider(this.player2Projectiles, buildingsLayer);
+
+    
 
     // for cooldown
     this.player1LastShot = 0;
     this.player2LastShot = 0;
-
 }
 
 function update() { // Game mainloop
@@ -167,7 +197,10 @@ function update() { // Game mainloop
 
     };
 
+    //console.log(`${this.player1}` + this.player1.x);
+    //console.log(`${this.player1}` + this.player1.y);
 
+    
     // shooting
 
     // Create the projectile (it is a variable)
@@ -198,6 +231,7 @@ function update() { // Game mainloop
 
         const spawnX = player.x + Math.cos(player.rotation) * player.muzzleOffset; // + muzzleOffset; // Spawn at the cannon, not inside the player
         const spawnY = player.y + Math.sin(player.rotation) * player.muzzleOffset; // + muzzleOffset;
+
 
         const projectile = projectileGroup.get(spawnX, spawnY) // Create the projectile based on the coordinates where it should appear
 
