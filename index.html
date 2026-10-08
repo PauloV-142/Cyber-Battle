@@ -1,42 +1,23 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CyberBattle - PhaserJS V0.0.2 (Alpha)</title>
-
-    <!-- <script src="assets/phaser.js"></script> -->
-    <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.0/dist/phaser.js"></script>
-    <!-- The phaser.min.js is performant for production, but not for development -->
-    <!-- <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.0/dist/phaser.min.js"></script> -->
-    <style>
-        html,
-        body {
-            margin: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            /* background: #000; */
-        }
-
-        #game-screen {
-            width: 100vw;
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-    </style>
+    <title>Cyber Tank</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <main>
-        <section id="game-screen">
-            <!-- This is where will be placed the PixiJS Canvas -->
-            
+    <main class="home-screen">
+        <img class="home-light home-light--top" src="assets/home/HomeLightSide.png" alt="">
+        <img class="home-light home-light--bottom" src="assets/home/HomeLightSide.png" alt="">
+
+        <img class="home-controller home-controller--top" src="assets/home/HomeControllerSIde.png" alt="">
+        <img class="home-controller home-controller--bottom" src="assets/home/HomeControllerSIde.png" alt="">
+
+        <section class="home-content" aria-label="Menu principal">
+            <h1 class="game-title">Cyber<br>Tank</h1>
+            <a class="play-button" href="#">Jogar</a>
         </section>
     </main>
-
-    <script src="main.js"></script>
-
 </body>
 </html>

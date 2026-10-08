@@ -1,10 +1,118 @@
+/* HOME SCREEN */
 body {
-    background-color: rgb(52, 51, 51);
-    margin: 0px;
-    padding: 0px;
+    margin: 0;
+    padding: 0;
     overflow: hidden;
+    background: #050023;
 }
 
+.home-screen {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    min-width: 900px;
+    min-height: 506px;
+    overflow: hidden;
+    isolation: isolate;
+    background: #050023;
+}
+
+.home-content {
+    position: absolute;
+    z-index: 3;
+    top: 50%;
+    left: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transform: translate(-50%, -50%);
+}
+
+.game-title {
+    margin: 0 0 70px;
+    color: #fff;
+    font-family: "Space Grotesk", sans-serif;
+    font-size: clamp(5rem, 9vw, 9.5rem);
+    font-weight: 700;
+    line-height: .78;
+    letter-spacing: -0.04em;
+    text-align: center;
+    text-transform: uppercase;
+    -webkit-text-stroke: 15px #0034a9;
+    paint-order: stroke fill;
+}
+
+.play-button {
+    display: grid;
+    place-items: center;
+    width: clamp(150px, 17.5vw, 180px);
+    height: clamp(53px, 5.9vw, 61px);
+    box-sizing: border-box;
+    border: 0;
+    color: #fff;
+    background: #0034a9;
+    box-shadow: -7px 8px 0 rgba(0, 52, 169, .45);
+    font-family: "Space Grotesk", sans-serif;
+    font-size: clamp(1.4rem, 2.7vw, 1.75rem);
+    font-weight: 700;
+    line-height: 1;
+    text-decoration: none;
+    text-transform: uppercase;
+    transition: background-color .18s ease, transform .18s ease, box-shadow .18s ease;
+}
+
+.play-button:hover,
+.play-button:focus-visible {
+    background: #174dcc;
+    box-shadow: -4px 5px 0 rgba(0, 52, 169, .45);
+    outline: none;
+    transform: translate(-3px, 3px);
+}
+
+.home-light,
+.home-controller {
+    position: absolute;
+    pointer-events: none;
+    user-select: none;
+}
+
+.home-light {
+    z-index: 1;
+    width: min(42vw, 803px);
+    height: auto;
+    opacity: .85;
+}
+
+.home-light--top {
+    top: -22vw;
+    left: -22vw;
+}
+
+.home-light--bottom {
+    right: -12vw;
+    bottom: -12vw;
+    transform: rotate(180deg);
+}
+
+.home-controller {
+    z-index: 0;
+    width: min(16vw, 220px);
+    height: auto;
+}
+
+.home-controller--top {
+    top: -12px;
+    left: -80px;
+}
+
+.home-controller--bottom {
+    right: -40px;
+    bottom: 0;
+    transform: rotate(180deg);
+}
+
+
+/* GAME */
 #game-screen {
     height: 100vh;
     width: 100vw;
