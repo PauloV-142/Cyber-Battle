@@ -1,3 +1,5 @@
+const DOWNLOAD_BUTTON_ENABLED = false;
+
 const fallbackCatalog = {
   belts: [
     {
@@ -300,6 +302,26 @@ function render() {
   previewCard.appendChild(previewBlock.preview);
   previewCard.appendChild(previewBlock.statsWrap);
 
+  if (DOWNLOAD_BUTTON_ENABLED) {
+    // Download preset sprite button
+    const downloadBtn = document.createElement('button');
+    downloadBtn.type = 'button';
+    downloadBtn.className = 'primary-btn';
+    downloadBtn.style.height = '48px';
+    downloadBtn.style.fontSize = '0.9rem';
+    downloadBtn.textContent = 'BAIXAR SPRITE';
+    downloadBtn.addEventListener('click', async () => {
+      const sel = state.selections[player];
+      const filename = `${sel.belt}__${sel.chassis}__${sel.cannon}.png`;
+      try {
+        await capturePreviewToPNG(previewBlock.preview, filename);
+        console.log('Downloaded', filename);
+      } catch (err) {
+        console.error('Failed to download sprite', err);
+      }
+    });
+    previewCard.appendChild(downloadBtn);
+  }
   const action = document.createElement('button');
   action.type = 'button';
   action.className = 'primary-btn';
@@ -331,6 +353,65 @@ function render() {
   frame.appendChild(header);
   frame.appendChild(layout);
   builderScreen.appendChild(frame);
+}
+
+// Capture the preview DOM node and save it as PNG using canvas
+async function capturePreviewToPNG(previewNode, filename) {
+  if (!previewNode) throw new Error('Missing preview node');
+
+  // Ensure layout is up-to-date
+  const parentRect = previewNode.getBoundingClientRect();
+  const width = Math.ceil(parentRect.width);
+  const height = Math.ceil(parentRect.height);
+
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+
+  // Fill transparent background
+  ctx.clearRect(0, 0, width, height);
+
+  // Collect layered images in DOM order (they are already appended in the correct order)
+  const layers = Array.from(previewNode.querySelectorAll('.preview-layer'));
+
+  // Load images sequentially and draw
+  for (const el of layers) {
+    if (!(el instanceof HTMLImageElement)) continue;
+    const imgRect = el.getBoundingClientRect();
+    const x = Math.round(imgRect.left - parentRect.left);
+    const y = Math.round(imgRect.top - parentRect.top);
+    const w = Math.round(imgRect.width);
+    const h = Math.round(imgRect.height);
+
+    await new Promise((resolve, reject) => {
+      const im = new Image();
+      im.crossOrigin = 'anonymous';
+      im.onload = () => {
+        try {
+          ctx.drawImage(im, x, y, w, h);
+          resolve();
+        } catch (e) { reject(e); }
+      };
+      im.onerror = reject;
+      im.src = el.src;
+    });
+  }
+
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (!blob) return reject(new Error('Failed to create blob'));
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      resolve();
+    }, 'image/png');
+  });
 }
 
 async function initBuilder() {

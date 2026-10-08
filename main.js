@@ -146,6 +146,15 @@ function preload() {
         ['cannon-rapido', 'assets/tanks/cannons/Cannon03.png']
     ].forEach(([key, path]) => this.load.image(key, path));
 }
+    // Also attempt to load preset sprites (exported by the builder) - non-fatal if missing
+    [
+        ['preset_belt-propulsores__chassis-pesado__cannon-rapido', 'assets/preset-sprites/belt-propulsores__chassis-pesado__cannon-rapido.png'],
+        ['preset_belt-propulsores__chassis-pesado__cannon-onda-de-choque', 'assets/preset-sprites/belt-propulsores__chassis-pesado__cannon-onda-de-choque.png'],
+        ['preset_belt-esteiras__chassis-equilibrado__cannon-parabolica', 'assets/preset-sprites/belt-esteiras__chassis-equilibrado__cannon-parabolica.png']
+    ].forEach(([key, path]) => {
+        // use load.image but ignore errors - Phaser doesn't expose easy per-asset error hooks here
+        try { this.load.image(key, path); } catch (e) { /* ignore */ }
+    });
 
 var canonProperties = { cooldown: 100 };
 
@@ -198,8 +207,21 @@ function create() {
         const player1Build = buildTankSelection(catalog, selectionState[1]);
         const player2Build = buildTankSelection(catalog, selectionState[2]);
 
-        this.player1 = createCompositeTank(this, player1Build, 88, 367, 0);
-        this.player2 = createCompositeTank(this, player2Build, 1830, 782, Math.PI);
+        // Prefer preset sprite if available. Identifier matches the filename produced by the builder
+        const p1Key = `preset_${player1Build.belt.id}__${player1Build.chassis.id}__${player1Build.cannon.id}`;
+        const p2Key = `preset_${player2Build.belt.id}__${player2Build.chassis.id}__${player2Build.cannon.id}`;
+
+        if (this.textures.exists(p1Key)) {
+            this.player1 = this.physics.add.image(88, 367, p1Key);
+        } else {
+            this.player1 = createCompositeTank(this, player1Build, 88, 367, 0);
+        }
+
+        if (this.textures.exists(p2Key)) {
+            this.player2 = this.physics.add.image(1830, 782, p2Key).setAngle(180);
+        } else {
+            this.player2 = createCompositeTank(this, player2Build, 1830, 782, Math.PI);
+        }
         this.player1.name = 'player1';
         this.player2.name = 'player2';
 
