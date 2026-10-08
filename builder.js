@@ -130,6 +130,29 @@ function computeTankStats(catalog, selection) {
   return tank;
 }
 
+function buildFinishedTank(catalog, selection) {
+  const stats = computeTankStats(catalog, selection);
+
+  return {
+    ...selection,
+    ...stats,
+    id: `${selection.belt}__${selection.chassis}__${selection.cannon}`,
+    rotationSpeed: 2,
+    muzzleOffset: 86,
+    projectile: {
+      image: 'ball_projectile',
+      damage: stats.damage,
+      speed: stats.projectileSpeed,
+      lifetime: 1800,
+      owner: undefined,
+      hitbox: undefined
+    },
+    canon: {
+      cooldown: stats.cooldown
+    }
+  };
+}
+
 function renderPartGroup(container, groupTitle, type, items, selectedId) {
   const group = document.createElement('div');
   group.className = 'part-group';
@@ -335,9 +358,10 @@ function render() {
 
     console.log('Build finalizado', state.selections);
     if (window.startGameWithSelections) {
+      const tankCatalog = window.__tankCatalog || fallbackCatalog;
       window.startGameWithSelections({
-        1: { ...state.selections[1] },
-        2: { ...state.selections[2] }
+        1: { ...state.selections[1], tank: buildFinishedTank(tankCatalog, state.selections[1]) },
+        2: { ...state.selections[2], tank: buildFinishedTank(tankCatalog, state.selections[2]) }
       });
       return;
     }

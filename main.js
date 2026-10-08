@@ -60,6 +60,53 @@ function buildTankSelection(catalog, selection) {
     return { belt, chassis, cannon };
 }
 
+function buildTankRuntimeConfig(catalog, selection) {
+    const baseSelection = selection || {};
+    const finishedTank = baseSelection.tank || {
+        ...baseSelection,
+        rotationSpeed: 2,
+        muzzleOffset: 86,
+        speed: 80,
+        drag: 0.5,
+        cooldown: 100,
+        damage: 10,
+        projectileSpeed: 300,
+        projectileType: 'bullet'
+    };
+
+    const belt = findCatalogPart(catalog, 'belt', baseSelection.belt) || { stats: { speed: finishedTank.speed || 80, drag: finishedTank.drag || 0.5 } };
+    const chassis = findCatalogPart(catalog, 'chassis', baseSelection.chassis) || { stats: { weight: 50, armor: 1 } };
+    const cannon = findCatalogPart(catalog, 'cannon', baseSelection.cannon) || { stats: { cooldown: finishedTank.cooldown || 100, damage: finishedTank.damage || 10, projectileSpeed: finishedTank.projectileSpeed || 300 } };
+
+    // defaults are being used here
+    const projectileSpeed = Number(finishedTank.projectileSpeed ?? cannon.stats.projectileSpeed ?? 300);
+    const damage = Number(finishedTank.damage ?? cannon.stats.damage ?? 10);
+    const cooldown = Number(finishedTank.cooldown ?? cannon.stats.cooldown ?? 100);
+    const movementSpeed = Number(finishedTank.speed ?? belt.stats.speed ?? 80);
+    const drag = Number(finishedTank.drag ?? belt.stats.drag ?? 0.5);
+    const rotationSpeed = Number(finishedTank.rotationSpeed ?? 2);
+    const muzzleOffset = Number(finishedTank.muzzleOffset ?? 86);
+
+    return {
+        rotationSpeed: Phaser.Math.DegToRad(rotationSpeed),
+        movementSpeed,
+        drag,
+        life: finishedTank.hp ?? chassis.stats.hp ?? undefined,
+        muzzleOffset,
+        projectile: {
+            damage,
+            speed: projectileSpeed,
+            lifetime: 1800,
+            owner: undefined,
+            hitbox: undefined,
+            image: finishedTank.projectile?.image || 'ball_projectile'
+        },
+        canon: {
+            cooldown
+        }
+    };
+}
+
 function createCompositeTank(scene, tankDefinition, x, y, angle = 0) {
     const container = scene.add.container(x, y);
     container.rotation = angle;
@@ -167,36 +214,37 @@ function preload() {
     });
 }
 
-var canonProperties = { cooldown: 100 };
+/* These were development proprierties, the actual proprieties to be used come from the build tank page (after the user clicks "INICIAR")*/
+// var canonProperties = { cooldown: 100 };
 
-var ballProprierties = {
-    damage: 10,
-    speed: 300,
-    lifetime: 1800,
-    owner: undefined,
-    hitbox: undefined,
-    image: 'ball_projectile'
-};
+// var ballProprierties = {
+//     damage: 10,
+//     speed: 300,
+//     lifetime: 1800,
+//     owner: undefined,
+//     hitbox: undefined,
+//     image: 'ball_projectile'
+// };
 
-var tank1Properties = {
-    rotationSpeed: Phaser.Math.DegToRad(2),
-    movementSpeed: 80,
-    drag: 0.5,
-    life: undefined,
-    muzzleOffset: 86,
-    projectile: ballProprierties,
-    canon: canonProperties
-};
+// var tank1Properties = {
+//     rotationSpeed: Phaser.Math.DegToRad(2),
+//     movementSpeed: 80,
+//     drag: 0.5,
+//     life: undefined,
+//     muzzleOffset: 86,
+//     projectile: ballProprierties,
+//     canon: canonProperties
+// };
 
-var tank2Properties = {
-    rotationSpeed: Phaser.Math.DegToRad(2),
-    movementSpeed: 80,
-    drag: 0.5,
-    life: undefined,
-    muzzleOffset: 86,
-    projectile: ballProprierties,
-    canon: canonProperties
-};
+// var tank2Properties = {
+//     rotationSpeed: Phaser.Math.DegToRad(2),
+//     movementSpeed: 80,
+//     drag: 0.5,
+//     life: undefined,
+//     muzzleOffset: 86,
+//     projectile: ballProprierties,
+//     canon: canonProperties
+// };
 
 function create() {
     const selectionState = window.__selectedTankBuild || {
@@ -221,6 +269,9 @@ function create() {
         const p1Key = buildPresetSpriteKey(selectionState[1]);
         const p2Key = buildPresetSpriteKey(selectionState[2]);
 
+        const player1Config = buildTankRuntimeConfig(catalog, selectionState[1]);
+        const player2Config = buildTankRuntimeConfig(catalog, selectionState[2]);
+
         if (this.textures.exists(p1Key)) {
             this.player1 = this.physics.add.image(88, 367, p1Key);
             this.player1.setScale(1);
@@ -238,8 +289,11 @@ function create() {
         this.player1.name = 'player1';
         this.player2.name = 'player2';
 
-        this.player1.muzzleOffset = tank1Properties.muzzleOffset;
-        this.player2.muzzleOffset = tank2Properties.muzzleOffset;
+        this.player1Config = player1Config;
+        this.player2Config = player2Config;
+
+        this.player1.muzzleOffset = this.player1Config.muzzleOffset;
+        this.player2.muzzleOffset = this.player2Config.muzzleOffset;
 
         this.physics.add.collider(this.player1, buildingsLayer);
         this.physics.add.collider(this.player2, buildingsLayer);
@@ -262,12 +316,12 @@ function create() {
         });
 
         this.player1Projectiles = this.physics.add.group({
-            defaultKey: ballProprierties.image,
+            defaultKey: this.player1Config.projectile.image,
             maxSize: 1
         });
 
         this.player2Projectiles = this.physics.add.group({
-            defaultKey: ballProprierties.image,
+            defaultKey: this.player2Config.projectile.image,
             maxSize: 1
         });
 
@@ -304,53 +358,53 @@ function update() {
     this.player1.body.setVelocity(0, 0);
     this.player2.body.setVelocity(0, 0);
 
-    if (this.player1Input.left.isDown) this.player1.rotation -= tank1Properties.rotationSpeed;
-    else if (this.player1Input.right.isDown) this.player1.rotation += tank1Properties.rotationSpeed;
+    if (this.player1Input.left.isDown) this.player1.rotation -= this.player1Config.rotationSpeed;
+    else if (this.player1Input.right.isDown) this.player1.rotation += this.player1Config.rotationSpeed;
 
     if (this.player1Input.up.isDown) {
         applyVelocity(
             this.player1,
-            Math.cos(this.player1.rotation) * tank1Properties.movementSpeed,
-            Math.sin(this.player1.rotation) * tank1Properties.movementSpeed
+            Math.cos(this.player1.rotation) * this.player1Config.movementSpeed,
+            Math.sin(this.player1.rotation) * this.player1Config.movementSpeed
         );
     }
 
     if (this.player1Input.down.isDown) {
         applyVelocity(
             this.player1,
-            Math.cos(this.player1.rotation) * tank1Properties.movementSpeed * -1,
-            Math.sin(this.player1.rotation) * tank1Properties.movementSpeed * -1
+            Math.cos(this.player1.rotation) * this.player1Config.movementSpeed * -1,
+            Math.sin(this.player1.rotation) * this.player1Config.movementSpeed * -1
         );
     }
 
-    if (this.player2Input.left.isDown) this.player2.rotation -= tank2Properties.rotationSpeed;
-    else if (this.player2Input.right.isDown) this.player2.rotation += tank2Properties.rotationSpeed;
+    if (this.player2Input.left.isDown) this.player2.rotation -= this.player2Config.rotationSpeed;
+    else if (this.player2Input.right.isDown) this.player2.rotation += this.player2Config.rotationSpeed;
 
     if (this.player2Input.up.isDown) {
         applyVelocity(
             this.player2,
-            Math.cos(this.player2.rotation) * tank2Properties.movementSpeed,
-            Math.sin(this.player2.rotation) * tank2Properties.movementSpeed
+            Math.cos(this.player2.rotation) * this.player2Config.movementSpeed,
+            Math.sin(this.player2.rotation) * this.player2Config.movementSpeed
         );
     }
 
     if (this.player2Input.down.isDown) {
         applyVelocity(
             this.player2,
-            Math.cos(this.player2.rotation) * tank2Properties.movementSpeed * -1,
-            Math.sin(this.player2.rotation) * tank2Properties.movementSpeed * -1
+            Math.cos(this.player2.rotation) * this.player2Config.movementSpeed * -1,
+            Math.sin(this.player2.rotation) * this.player2Config.movementSpeed * -1
         );
     }
 
-    const player1cooldownFinished = this.time.now > this.player1LastShot + tank1Properties.canon.cooldown;
+    const player1cooldownFinished = this.time.now > this.player1LastShot + this.player1Config.canon.cooldown;
     if (Phaser.Input.Keyboard.JustDown(this.player1Input.shoot) && player1cooldownFinished) {
-        shootProjectile(this, this.player1, tank1Properties.projectile, this.player1Projectiles);
+        shootProjectile(this, this.player1, this.player1Config.projectile, this.player1Projectiles);
         this.player1LastShot = this.time.now;
     }
 
-    const player2cooldownFinished = this.time.now > this.player2LastShot + tank2Properties.canon.cooldown;
+    const player2cooldownFinished = this.time.now > this.player2LastShot + this.player2Config.canon.cooldown;
     if (Phaser.Input.Keyboard.JustDown(this.player2Input.shoot) && player2cooldownFinished) {
-        shootProjectile(this, this.player2, tank2Properties.projectile, this.player2Projectiles);
+        shootProjectile(this, this.player2, this.player2Config.projectile, this.player2Projectiles);
         this.player2LastShot = this.time.now;
     }
 }
