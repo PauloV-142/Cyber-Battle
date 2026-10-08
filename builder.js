@@ -5,14 +5,16 @@ const fallbackCatalog = {
       name: 'Esteiras',
       type: 'belt',
       sprite: 'assets/tanks/belts/Track01.png',
-      stats: { speed: 80, drag: 0.55, weight: 18, traction: 1 }
+      stats: { speed: 80, drag: 0.55, weight: 18, traction: 1 },
+      display: { x: 0, y: 0, scaleX: 1.0, scaleY: 1.0 }
     },
     {
       id: 'belt-propulsores',
       name: 'Propulsores',
       type: 'belt',
       sprite: 'assets/tanks/belts/Track02.png',
-      stats: { speed: 120, drag: 0.35, weight: 12, traction: 1.2 }
+      stats: { speed: 120, drag: 0.35, weight: 12, traction: 1.2 },
+      display: { x: 0, y: 0, scaleX: 1.0, scaleY: 1.0 }
     }
   ],
   chassis: [
@@ -21,21 +23,24 @@ const fallbackCatalog = {
       name: 'Equilibrado',
       type: 'chassis',
       sprite: 'assets/tanks/chasiss/Chassis01.png',
-      stats: { hp: 110, weight: 55, armor: 1, resistance: 12 }
+      stats: { hp: 110, weight: 55, armor: 1, resistance: 12 },
+      display: { x: 0, y: 0, scaleX: 1.0, scaleY: 1.0 }
     },
     {
       id: 'chassis-leve',
       name: 'Leve',
       type: 'chassis',
       sprite: 'assets/tanks/chasiss/Chassis02.png',
-      stats: { hp: 90, weight: 40, armor: 0.8, resistance: 9 }
+      stats: { hp: 90, weight: 40, armor: 0.8, resistance: 9 },
+      display: { x: 0, y: 0, scaleX: 1.0, scaleY: 1.0 }
     },
     {
       id: 'chassis-pesado',
       name: 'Pesado',
       type: 'chassis',
       sprite: 'assets/tanks/chasiss/Chassis03.png',
-      stats: { hp: 150, weight: 75, armor: 1.4, resistance: 18 }
+      stats: { hp: 150, weight: 75, armor: 1.4, resistance: 18 },
+      display: { x: 0, y: 0, scaleX: 1.0, scaleY: 1.0 }
     }
   ],
   cannons: [
@@ -44,32 +49,36 @@ const fallbackCatalog = {
       name: 'Parabólica',
       type: 'cannon',
       sprite: 'assets/tanks/cannons/Cannon01.png',
-      stats: { cooldown: 420, damage: 18, projectileSpeed: 300, projectileType: 'laser', spread: 0.08 }
+      stats: { cooldown: 420, damage: 18, projectileSpeed: 300, projectileType: 'laser', spread: 0.08 },
+      display: { x: 0, y: 0, scaleX: 1.0, scaleY: 1.0 }
     },
     {
       id: 'cannon-onda-de-choque',
       name: 'Onda de Choque',
       type: 'cannon',
       sprite: 'assets/tanks/cannons/Cannon02.png',
-      stats: { cooldown: 260, damage: 14, projectileSpeed: 420, projectileType: 'shockwave', spread: 0.04 }
+      stats: { cooldown: 260, damage: 14, projectileSpeed: 420, projectileType: 'shockwave', spread: 0.04 },
+      display: { x: 0, y: 0, scaleX: 1.0, scaleY: 1.0 }
     },
     {
       id: 'cannon-rapido',
       name: 'Canhão Rápido',
       type: 'cannon',
       sprite: 'assets/tanks/cannons/Cannon03.png',
-      stats: { cooldown: 120, damage: 9, projectileSpeed: 500, projectileType: 'bullet', spread: 0.12 }
+      stats: { cooldown: 120, damage: 9, projectileSpeed: 500, projectileType: 'bullet', spread: 0.12 },
+      display: { x: 0, y: 0, scaleX: 1.0, scaleY: 1.0 }
     }
   ]
 };
 
+// preset
 const state = {
   currentPlayer: 1,
   selections: {
     1: {
-      belt: 'belt-esteiras',
-      chassis: 'chassis-equilibrado',
-      cannon: 'cannon-parabolica'
+      belt: 'belt-propulsores',
+      chassis: 'chassis-pesado',
+      cannon: 'cannon-rapido'
     },
     2: {
       belt: 'belt-propulsores',
@@ -100,7 +109,7 @@ function computeTankStats(catalog, selection) {
   const chassis = findPart(catalog, 'chassis', selection.chassis);
   const cannon = findPart(catalog, 'cannon', selection.cannon);
 
-  return {
+  const tank = {
     belt,
     chassis,
     cannon,
@@ -114,6 +123,9 @@ function computeTankStats(catalog, selection) {
     projectileSpeed: cannon.stats.projectileSpeed,
     projectileType: cannon.stats.projectileType
   };
+
+  console.log(tank);
+  return tank;
 }
 
 function renderPartGroup(container, groupTitle, type, items, selectedId) {
@@ -181,22 +193,44 @@ function renderPreview(player, stats) {
   const preview = document.createElement('div');
   preview.className = 'tank-preview';
 
-  const belt = document.createElement('img');
-  belt.className = 'preview-layer preview-belt';
-  belt.src = stats.belt.sprite;
-  belt.alt = stats.belt.name;
+  // The tank is symetrical, and the belt image is of a single belt, so we have to put twice belt images under the tank, to represent a real tank set of belts.
+  const leftBelt = document.createElement('img');
+  leftBelt.className = 'preview-layer preview-belt left';
+  leftBelt.src = stats.belt.sprite;
+  leftBelt.alt = stats.belt.name;
+  const beltDisplay = stats.belt.display;
+  leftBelt.style.left = `${beltDisplay.leftX}px`;
+  leftBelt.style.top = `${beltDisplay.y}px`;
+  leftBelt.style.transform = `scale(${beltDisplay.scaleX}, ${beltDisplay.scaleY})`;
+
+  const rightBelt = document.createElement('img');
+  rightBelt.className = 'preview-layer preview-belt right';
+  rightBelt.src = stats.belt.sprite;
+  rightBelt.alt = stats.belt.name;
+  rightBelt.style.left = `${beltDisplay.leftX + beltDisplay.rightX}px`;
+  rightBelt.style.top = `${beltDisplay.y}px`;
+  rightBelt.style.transform = `scale(${beltDisplay.scaleX}, ${beltDisplay.scaleY})`;
 
   const chassis = document.createElement('img');
   chassis.className = 'preview-layer preview-chassis';
   chassis.src = stats.chassis.sprite;
   chassis.alt = stats.chassis.name;
+  const chassisDisplay = stats.chassis.display;
+  chassis.style.left = `${chassisDisplay.x}px`;
+  chassis.style.top = `${chassisDisplay.y}px`;
+  chassis.style.transform = `scale(${chassisDisplay.scaleX}, ${chassisDisplay.scaleY})`;
 
   const cannon = document.createElement('img');
   cannon.className = 'preview-layer preview-cannon';
   cannon.src = stats.cannon.sprite;
   cannon.alt = stats.cannon.name;
+  const cannonDisplay = stats.cannon.display;
+  cannon.style.left = `${cannonDisplay.x}px`;
+  cannon.style.top = `${cannonDisplay.y}px`;
+  cannon.style.transform = `scale(${cannonDisplay.scaleX}, ${cannonDisplay.scaleY})`;
 
-  preview.appendChild(belt);
+  preview.appendChild(leftBelt);
+  preview.appendChild(rightBelt);
   preview.appendChild(chassis);
   preview.appendChild(cannon);
 

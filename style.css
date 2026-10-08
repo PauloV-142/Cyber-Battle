@@ -255,22 +255,25 @@ button {
     pointer-events: none;
 }
 
+/* This preview will be reused when the tank render to the phaserJs stage: the sprite will be the stack of the images */
+
 .preview-belt {
-    bottom: 26px;
-    width: 170px;
     z-index: 1;
+    scale: 2;
+    margin-left: 33.33%;
 }
 
+
 .preview-chassis {
-    bottom: 55px;
-    width: 190px;
     z-index: 2;
+    scale: 2;
+    margin-left: 33.33%;
 }
 
 .preview-cannon {
-    bottom: 104px;
-    width: 180px;
     z-index: 3;
+    scale: 2;
+    margin-left: 33.33%;
 }
 
 .stat-panel {
