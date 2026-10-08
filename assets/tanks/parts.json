@@ -1,0 +1,160 @@
+{
+  "belts": [
+    {
+      "id": "belt-esteiras",
+      "name": "Esteiras",
+      "type": "belt",
+      "sprite": "assets/tanks/belts/Track01.png",
+      "stats": {
+        "speed": 80,
+        "drag": 0.55,
+        "weight": 18,
+        "traction": 1.0
+      },
+      "display": {
+        "leftX": -5,
+        "rightX": 70,
+        "y": 20,
+        "scaleX": 0.5,
+        "scaleY": 0.5
+      }
+    },
+    {
+      "id": "belt-propulsores",
+      "name": "Propulsores",
+      "type": "belt",
+      "sprite": "assets/tanks/belts/Track02.png",
+      "stats": {
+        "speed": 120,
+        "drag": 0.35,
+        "weight": 12,
+        "traction": 1.2
+      },
+      "display": {
+        "leftX": -18,
+        "rightX": 80,
+        "y": 30,
+        "scaleX": 0.5,
+        "scaleY": 0.5
+      }
+    }
+  ],
+  "chassis": [
+    {
+      "id": "chassis-leve",
+      "name": "Leve",
+      "type": "chassis",
+      "sprite": "assets/tanks/chasiss/Chassis01.png",
+      "stats": {
+        "hp": 90,
+        "weight": 40,
+        "armor": 0.8,
+        "resistance": 9
+      },
+      "display": {
+        "x": 10,
+        "y": 30,
+        "scaleX": 0.7,
+        "scaleY": 0.7
+      }
+    },
+    {
+      "id": "chassis-equilibrado",
+      "name": "Equilibrado",
+      "type": "chassis",
+      "sprite": "assets/tanks/chasiss/Chassis02.png",
+      "stats": {
+        "hp": 110,
+        "weight": 55,
+        "armor": 1.0,
+        "resistance": 12
+      },
+      "display": {
+        "x": 0,
+        "y": 0,
+        "scaleX": 0.5,
+        "scaleY": 0.5
+      }
+    },
+    {
+      "id": "chassis-pesado",
+      "name": "Pesado",
+      "type": "chassis",
+      "sprite": "assets/tanks/chasiss/Chassis03.png",
+      "stats": {
+        "hp": 150,
+        "weight": 75,
+        "armor": 1.4,
+        "resistance": 18
+      },
+      "display": {
+        "x": -7,
+        "y": 20,
+        "scaleX": 0.43,
+        "scaleY": 0.43
+      }
+    }
+  ],
+  "cannons": [
+    {
+      "id": "cannon-parabolica",
+      "name": "Parabólica",
+      "type": "cannon",
+      "sprite": "assets/tanks/cannons/Cannon01.png",
+      "stats": {
+        "cooldown": 420,
+        "damage": 18,
+        "projectileSpeed": 300,
+        "projectileType": "laser",
+        "projectileAsset": "assets/tanks/projectiles/Projectile01.png",
+        "spread": 0.08
+      },
+      "display": {
+        "x": 5,
+        "y": -40,
+        "scaleX": 0.4,
+        "scaleY": 0.4
+      }
+    },
+    {
+      "id": "cannon-onda-de-choque",
+      "name": "Onda de Choque",
+      "type": "cannon",
+      "sprite": "assets/tanks/cannons/Cannon02.png",
+      "stats": {
+        "cooldown": 260,
+        "damage": 14,
+        "projectileSpeed": 420,
+        "projectileType": "shockwave",
+        "projectileAsset": "assets/tanks/projectiles/Projectile02.png",
+        "spread": 0.04
+      },
+      "display": {
+        "x": 30,
+        "y": -40,
+        "scaleX": 0.5,
+        "scaleY": 0.5
+      }
+    },
+    {
+      "id": "cannon-rapido",
+      "name": "Canhão Rápido",
+      "type": "cannon",
+      "sprite": "assets/tanks/cannons/Cannon03.png",
+      "stats": {
+        "cooldown": 120,
+        "damage": 9,
+        "projectileSpeed": 500,
+        "projectileType": "bullet",
+        "projectileAsset": "assets/tanks/projectiles/Projectile03.png",
+        "spread": 0.12
+      },
+      "display": {
+        "x": 32.5,
+        "y": -40,
+        "scaleX": 0.5,
+        "scaleY": 0.5
+      }
+    }
+  ]
+}
