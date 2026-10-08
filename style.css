@@ -51,6 +51,17 @@ button {
     background: #020a1b;
 }
 
+#game-screen {
+    width: 100vw;
+    height: 100vh;
+    display: none;
+    background: #020a1b;
+}
+
+#game-screen[hidden] {
+    display: none !important;
+}
+
 .builder-frame {
     width: min(1400px, 96vw);
     min-height: 760px;

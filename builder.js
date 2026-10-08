@@ -312,6 +312,15 @@ function render() {
     }
 
     console.log('Build finalizado', state.selections);
+    if (window.startGameWithSelections) {
+      window.startGameWithSelections({
+        1: { ...state.selections[1] },
+        2: { ...state.selections[2] }
+      });
+      return;
+    }
+
+    console.warn('startGameWithSelections is not defined. main.js is probably not loaded.');
   });
 
   right.appendChild(previewCard);
