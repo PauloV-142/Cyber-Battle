@@ -1,0 +1,110 @@
+{
+  "belts": [
+    {
+      "id": "belt-esteiras",
+      "name": "Esteiras",
+      "type": "belt",
+      "sprite": "assets/tanks/belts/Track01.png",
+      "stats": {
+        "speed": 80,
+        "drag": 0.55,
+        "weight": 18,
+        "traction": 1.0
+      }
+    },
+    {
+      "id": "belt-propulsores",
+      "name": "Propulsores",
+      "type": "belt",
+      "sprite": "assets/tanks/belts/Track02.png",
+      "stats": {
+        "speed": 120,
+        "drag": 0.35,
+        "weight": 12,
+        "traction": 1.2
+      }
+    }
+  ],
+  "chassis": [
+    {
+      "id": "chassis-equilibrado",
+      "name": "Equilibrado",
+      "type": "chassis",
+      "sprite": "assets/tanks/chasiss/Chassis01.png",
+      "stats": {
+        "hp": 110,
+        "weight": 55,
+        "armor": 1.0,
+        "resistance": 12
+      }
+    },
+    {
+      "id": "chassis-leve",
+      "name": "Leve",
+      "type": "chassis",
+      "sprite": "assets/tanks/chasiss/Chassis02.png",
+      "stats": {
+        "hp": 90,
+        "weight": 40,
+        "armor": 0.8,
+        "resistance": 9
+      }
+    },
+    {
+      "id": "chassis-pesado",
+      "name": "Pesado",
+      "type": "chassis",
+      "sprite": "assets/tanks/chasiss/Chassis03.png",
+      "stats": {
+        "hp": 150,
+        "weight": 75,
+        "armor": 1.4,
+        "resistance": 18
+      }
+    }
+  ],
+  "cannons": [
+    {
+      "id": "cannon-parabolica",
+      "name": "Parabólica",
+      "type": "cannon",
+      "sprite": "assets/tanks/cannons/Cannon01.png",
+      "stats": {
+        "cooldown": 420,
+        "damage": 18,
+        "projectileSpeed": 300,
+        "projectileType": "laser",
+        "projectileAsset": "assets/tanks/projectiles/Projectile01.png",
+        "spread": 0.08
+      }
+    },
+    {
+      "id": "cannon-onda-de-choque",
+      "name": "Onda de Choque",
+      "type": "cannon",
+      "sprite": "assets/tanks/cannons/Cannon02.png",
+      "stats": {
+        "cooldown": 260,
+        "damage": 14,
+        "projectileSpeed": 420,
+        "projectileType": "shockwave",
+        "projectileAsset": "assets/tanks/projectiles/Projectile02.png",
+        "spread": 0.04
+      }
+    },
+    {
+      "id": "cannon-rapido",
+      "name": "Canhão Rápido",
+      "type": "cannon",
+      "sprite": "assets/tanks/cannons/Cannon03.png",
+      "stats": {
+        "cooldown": 120,
+        "damage": 9,
+        "projectileSpeed": 500,
+        "projectileType": "bullet",
+        "projectileAsset": "assets/tanks/projectiles/Projectile03.png",
+        "spread": 0.12
+      }
+    }
+  ]
+}

@@ -39,6 +39,7 @@ function preload() // Setup function (load assets)
 var canonProperties = {
     cooldown: 100,
 }
+/* THESE OBJECTS CONTAINS THE SETTINGS FOR THE ENTITIES. THEY'LL BE PASSED TO THE GAME ONCE IT STARTS BY THE 'CREATE TANKS' VIEW, WHERE THE USER WILL CHOOSE WHICH ATTRIBUTES TO USE FOR THE GAME */
 
 var ballProprierties = {
     damage: 10,
