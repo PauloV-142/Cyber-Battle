@@ -1,5 +1,123 @@
 let game = null;
 
+const bulletHitSoundKeys = ['bulletHit', 'bulletHit2', 'bulletHit3'];
+const tankCollisionSoundKeys = ['tankCollision1', 'tankCollision2'];
+const tankGunSoundKeys = ['tankGun1', 'tankGun2', 'tankGun3'];
+
+function randomSoundKey(keys) {
+    return keys[Math.floor(Math.random() * keys.length)];
+}
+
+function getSoundPan(scene, x) {
+    const worldWidth = scene.physics.world.bounds.width || scene.scale.width;
+    return Phaser.Math.Clamp((x / worldWidth) * 2 - 1, -1, 1);
+}
+
+function setSoundPan(scene, sound, x) {
+    if (sound && typeof sound.setPan === 'function') {
+        sound.setPan(getSoundPan(scene, x));
+    }
+}
+
+function stopSound(sound) {
+    if (sound && sound.isPlaying) {
+        sound.stop();
+    }
+}
+
+function playRandomSound(scene, keys, x, config = {}) {
+    const sound = scene.sound.add(randomSoundKey(keys), config);
+    sound.once('complete', sound.destroy, sound);
+    sound.play();
+    setSoundPan(scene, sound, x);
+    return sound;
+}
+
+function createTankAudio(scene, tank) {
+    tank.audio = {
+        stopped: scene.sound.add('tankStopped', { loop: true, volume: 0.35 }),
+        started: scene.sound.add('tankStartedMovement', { volume: 0.45 }),
+        moving: scene.sound.add('tankMoving', { loop: true, volume: 0.35 }),
+        stopping: scene.sound.add('tankStoppingMovement', { volume: 0.45 })
+    };
+    tank.movementState = 'stopped';
+    tank.movementDirection = 0;
+    tank.audio.stopped.play();
+    setSoundPan(scene, tank.audio.stopped, tank.x);
+}
+
+function updateTankAudio(scene, tank, direction) {
+    if (!tank.audio) return;
+
+    Object.values(tank.audio).forEach((sound) => setSoundPan(scene, sound, tank.x));
+
+    if (direction !== 0) {
+        if (tank.movementDirection !== 0 && tank.movementDirection !== direction) {
+            stopSound(tank.audio.started);
+            stopSound(tank.audio.stopping);
+            stopSound(tank.audio.moving);
+            tank.audio.moving.play();
+            tank.movementState = 'moving';
+        } else if (tank.movementState === 'stopped' || tank.movementState === 'stopping') {
+            stopSound(tank.audio.stopped);
+            stopSound(tank.audio.stopping);
+            stopSound(tank.audio.moving);
+            tank.audio.started.play();
+            tank.movementState = 'starting';
+            tank.audio.started.once('complete', () => {
+                if (tank.movementDirection !== 0 && tank.audio.started.isPlaying === false) {
+                    tank.audio.moving.play();
+                    tank.movementState = 'moving';
+                }
+            });
+        }
+        tank.movementDirection = direction;
+        return;
+    }
+
+    if (tank.movementDirection !== 0 && tank.movementState !== 'stopping' && tank.movementState !== 'stopped') {
+        stopSound(tank.audio.started);
+        stopSound(tank.audio.moving);
+        tank.audio.stopping.play();
+        tank.movementState = 'stopping';
+        tank.audio.stopping.once('complete', () => {
+            if (tank.movementDirection === 0 && tank.audio.stopping.isPlaying === false) {
+                tank.audio.stopped.play();
+                tank.movementState = 'stopped';
+            }
+        });
+    }
+
+    tank.movementDirection = 0;
+}
+
+function playTankRebirth(scene) {
+    const left = scene.sound.add('tankRebirth', { volume: 0.45 });
+    const right = scene.sound.add('tankRebirth', { volume: 0.45 });
+    left.once('complete', left.destroy, left);
+    right.once('complete', right.destroy, right);
+    left.play();
+    right.play();
+    if (left && typeof left.setPan === 'function') left.setPan(-1);
+    if (right && typeof right.setPan === 'function') right.setPan(1);
+}
+
+function stopProjectileSound(projectile) {
+    stopSound(projectile.flyingSound);
+    projectile.flyingSound = null;
+    if (projectile.lifetimeTimer) {
+        projectile.lifetimeTimer.remove(false);
+        projectile.lifetimeTimer = null;
+    }
+}
+
+function deactivateProjectile(scene, projectile) {
+    if (!projectile || !projectile.active) return;
+    stopProjectileSound(projectile);
+    projectile.owner = null;
+    projectile.disableBody(true, true);
+}
+
 function buildPhaserConfig() {
     return {
         type: Phaser.Auto,
@@ -185,7 +303,21 @@ function preload() {
     this.load.image('techMapHelicopter', 'assets/TechMapHelicopter.png');
     this.load.image('techMapHelipad', 'assets/TechMapHelipad.png');
     this.load.image('concreteFloor', 'assets/ConcreteFloor.png');
-    this.load.image('ball_projectile', 'assets/tanks/projectiles/ball_bullet.png');
+    this.load.image('ball_projectile', 'assets/tanks/projectiles/bullet.png');
+    this.load.audio('bulletFlyingStandard', 'assets/sounds/tank/bullet/flying/bulletFlyingStandard.mp3');
+    this.load.audio('bulletHit', 'assets/sounds/tank/bullet/hit/bulletHit.mp3');
+    this.load.audio('bulletHit2', 'assets/sounds/tank/bullet/hit/bulletHit2.mp3');
+    this.load.audio('bulletHit3', 'assets/sounds/tank/bullet/hit/bulletHit3.mp3');
+    this.load.audio('tankCollision1', 'assets/sounds/tank/collision/freesound_community-071856_hollow-tank-hit-47673.mp3');
+    this.load.audio('tankCollision2', 'assets/sounds/tank/collision/freesound_community-hutch-hd-sfx-2014-0143-99637.mp3');
+    this.load.audio('tankGun1', 'assets/sounds/tank/gun/rescopicsound-sci-fi-weapon-shoot-firing-pulse-tm-01-233821.mp3');
+    this.load.audio('tankGun2', 'assets/sounds/tank/gun/rescopicsound-sci-fi-weapon-shoot-firing-pulse-tm-04-233827.mp3');
+    this.load.audio('tankGun3', 'assets/sounds/tank/gun/rescopicsound-sci-fi-weapon-shoot-firing-pulse-tm-05-233825.mp3');
+    this.load.audio('tankStopped', 'assets/sounds/tank/movement/tankStopped.mp3');
+    this.load.audio('tankStartedMovement', 'assets/sounds/tank/movement/startedTheMovement.mp3');
+    this.load.audio('tankMoving', 'assets/sounds/tank/movement/tankMoving.wav');
+    this.load.audio('tankStoppingMovement', 'assets/sounds/tank/movement/tankStoppingMovement.mp3');
+    this.load.audio('tankRebirth', 'assets/sounds/tank/tankRebirth.mp3');
 
     [
         ['belt-esteiras', 'assets/tanks/belts/Track01.png'],
@@ -246,6 +378,19 @@ function preload() {
 //     canon: canonProperties
 // };
 
+function registerTankCollision(scene, contactKey, x) {
+    scene.currentTankContacts.add(contactKey);
+    if (!scene.activeTankContacts.has(contactKey)) {
+        playRandomSound(scene, tankCollisionSoundKeys, x, { volume: 0.5 });
+    }
+}
+
+function handleProjectileHit(scene, projectile, target) {
+    if (!projectile || !projectile.active || (target && projectile.owner === target)) return;
+    playRandomSound(scene, bulletHitSoundKeys, projectile.x, { volume: 0.55 });
+    deactivateProjectile(scene, projectile);
+}
+
 function create() {
     const selectionState = window.__selectedTankBuild || {
         1: { belt: 'belt-esteiras', chassis: 'chassis-equilibrado', cannon: 'cannon-parabolica' },
@@ -288,6 +433,9 @@ function create() {
 
         this.player1.name = 'player1';
         this.player2.name = 'player2';
+        createTankAudio(this, this.player1);
+        createTankAudio(this, this.player2);
+        playTankRebirth(this);
 
         this.player1Config = player1Config;
         this.player2Config = player2Config;
@@ -295,9 +443,11 @@ function create() {
         this.player1.muzzleOffset = this.player1Config.muzzleOffset;
         this.player2.muzzleOffset = this.player2Config.muzzleOffset;
 
-        this.physics.add.collider(this.player1, buildingsLayer);
-        this.physics.add.collider(this.player2, buildingsLayer);
-        this.physics.add.collider(this.player1, this.player2);
+        this.activeTankContacts = new Set();
+        this.currentTankContacts = new Set();
+        this.physics.add.collider(this.player1, buildingsLayer, () => registerTankCollision(this, 'player1-building', this.player1.x));
+        this.physics.add.collider(this.player2, buildingsLayer, () => registerTankCollision(this, 'player2-building', this.player2.x));
+        this.physics.add.collider(this.player1, this.player2, () => registerTankCollision(this, 'player1-player2', (this.player1.x + this.player2.x) / 2));
 
         this.player1Input = this.input.keyboard.addKeys({
             up: Phaser.Input.Keyboard.KeyCodes.W,
@@ -317,16 +467,28 @@ function create() {
 
         this.player1Projectiles = this.physics.add.group({
             defaultKey: this.player1Config.projectile.image,
-            maxSize: 1
+            maxSize: 20
         });
 
         this.player2Projectiles = this.physics.add.group({
             defaultKey: this.player2Config.projectile.image,
-            maxSize: 1
+            maxSize: 20
         });
 
-        this.physics.add.collider(this.player1Projectiles, buildingsLayer);
-        this.physics.add.collider(this.player2Projectiles, buildingsLayer);
+        const onProjectileBuildingCollision = (projectile) => handleProjectileHit(this, projectile);
+        const onProjectileTankCollision = (projectile, tank) => handleProjectileHit(this, projectile, tank);
+        this.physics.add.collider(this.player1Projectiles, buildingsLayer, onProjectileBuildingCollision);
+        this.physics.add.collider(this.player2Projectiles, buildingsLayer, onProjectileBuildingCollision);
+        this.physics.add.collider(this.player1Projectiles, this.player1, onProjectileTankCollision);
+        this.physics.add.collider(this.player1Projectiles, this.player2, onProjectileTankCollision);
+        this.physics.add.collider(this.player2Projectiles, this.player1, onProjectileTankCollision);
+        this.physics.add.collider(this.player2Projectiles, this.player2, onProjectileTankCollision);
+        this.physics.world.on('worldbounds', (body) => {
+            const projectile = body.gameObject;
+            if (projectile && projectile.flyingSound) {
+                deactivateProjectile(this, projectile);
+            }
+        });
 
         this.player1LastShot = 0;
         this.player2LastShot = 0;
@@ -355,46 +517,45 @@ function update() {
         return;
     }
 
+    this.activeTankContacts = this.currentTankContacts || new Set();
+    this.currentTankContacts = new Set();
+
     this.player1.body.setVelocity(0, 0);
     this.player2.body.setVelocity(0, 0);
 
     if (this.player1Input.left.isDown) this.player1.rotation -= this.player1Config.rotationSpeed;
     else if (this.player1Input.right.isDown) this.player1.rotation += this.player1Config.rotationSpeed;
 
-    if (this.player1Input.up.isDown) {
+    const player1Direction = this.player1Input.up.isDown ? 1 : (this.player1Input.down.isDown ? -1 : 0);
+    if (player1Direction !== 0) {
         applyVelocity(
             this.player1,
-            Math.cos(this.player1.rotation) * this.player1Config.movementSpeed,
-            Math.sin(this.player1.rotation) * this.player1Config.movementSpeed
+            Math.cos(this.player1.rotation) * this.player1Config.movementSpeed * player1Direction,
+            Math.sin(this.player1.rotation) * this.player1Config.movementSpeed * player1Direction
         );
     }
-
-    if (this.player1Input.down.isDown) {
-        applyVelocity(
-            this.player1,
-            Math.cos(this.player1.rotation) * this.player1Config.movementSpeed * -1,
-            Math.sin(this.player1.rotation) * this.player1Config.movementSpeed * -1
-        );
-    }
+    updateTankAudio(this, this.player1, player1Direction);
 
     if (this.player2Input.left.isDown) this.player2.rotation -= this.player2Config.rotationSpeed;
     else if (this.player2Input.right.isDown) this.player2.rotation += this.player2Config.rotationSpeed;
 
-    if (this.player2Input.up.isDown) {
+    const player2Direction = this.player2Input.up.isDown ? 1 : (this.player2Input.down.isDown ? -1 : 0);
+    if (player2Direction !== 0) {
         applyVelocity(
             this.player2,
-            Math.cos(this.player2.rotation) * this.player2Config.movementSpeed,
-            Math.sin(this.player2.rotation) * this.player2Config.movementSpeed
+            Math.cos(this.player2.rotation) * this.player2Config.movementSpeed * player2Direction,
+            Math.sin(this.player2.rotation) * this.player2Config.movementSpeed * player2Direction
         );
     }
+    updateTankAudio(this, this.player2, player2Direction);
 
-    if (this.player2Input.down.isDown) {
-        applyVelocity(
-            this.player2,
-            Math.cos(this.player2.rotation) * this.player2Config.movementSpeed * -1,
-            Math.sin(this.player2.rotation) * this.player2Config.movementSpeed * -1
-        );
-    }
+    [this.player1Projectiles, this.player2Projectiles].forEach((projectileGroup) => {
+        projectileGroup.children.each((projectile) => {
+            if (projectile.active) {
+                setSoundPan(this, projectile.flyingSound, projectile.x);
+            }
+        });
+    });
 
     const player1cooldownFinished = this.time.now > this.player1LastShot + this.player1Config.canon.cooldown;
     if (Phaser.Input.Keyboard.JustDown(this.player1Input.shoot) && player1cooldownFinished) {
@@ -418,6 +579,8 @@ function shootProjectile(scene, player, projectileData, projectileGroup) {
 
     projectile.setActive(true);
     projectile.setVisible(true);
+    projectile.body.enable = true;
+    projectile.body.reset(spawnX, spawnY);
     projectile.setRotation(player.rotation);
 
     scene.physics.velocityFromRotation(player.rotation, projectileData.speed, projectile.body.velocity);
@@ -425,7 +588,14 @@ function shootProjectile(scene, player, projectileData, projectileGroup) {
     projectile.body.setAllowGravity(false);
     projectile.body.setCollideWorldBounds(true);
     projectile.body.onWorldBounds = true;
-    projectile.owner = projectileData.owner;
+    projectile.owner = player;
+    projectile.flyingSound = scene.sound.add('bulletFlyingStandard', { loop: true, volume: 0.3 });
+    projectile.flyingSound.play();
+    setSoundPan(scene, projectile.flyingSound, projectile.x);
+    playRandomSound(scene, tankGunSoundKeys, player.x, { volume: 0.55 });
+    projectile.lifetimeTimer = scene.time.delayedCall(projectileData.lifetime, () => {
+        deactivateProjectile(scene, projectile);
+    });
 }
 
 if (typeof window !== 'undefined') {
