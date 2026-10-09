@@ -106,7 +106,7 @@
         "damage": 18,
         "projectileSpeed": 300,
         "projectileType": "laser",
-        "projectileAsset": "assets/tanks/projectiles/Projectile01.png",
+        "projectileAsset": "assets/tanks/projectiles/laser.png",
         "spread": 0.08
       },
       "display": {
@@ -126,7 +126,7 @@
         "damage": 14,
         "projectileSpeed": 420,
         "projectileType": "shockwave",
-        "projectileAsset": "assets/tanks/projectiles/Projectile02.png",
+        "projectileAsset": "assets/tanks/projectiles/shockwave.png",
         "spread": 0.04
       },
       "display": {
@@ -146,7 +146,7 @@
         "damage": 9,
         "projectileSpeed": 500,
         "projectileType": "bullet",
-        "projectileAsset": "assets/tanks/projectiles/Projectile03.png",
+        "projectileAsset": "assets/tanks/projectiles/bullet.png",
         "spread": 0.12
       },
       "display": {
