@@ -267,6 +267,10 @@ window.startGameWithSelections = function (selections) {
     const builderScreen = document.getElementById('builder-screen');
     const gameScreen = document.getElementById('game-screen');
 
+    if (window.stopHomeMusic) {
+        window.stopHomeMusic();
+    }
+
     if (!gameScreen) {
         console.error('Missing element #game-screen.');
         return;

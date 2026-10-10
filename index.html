@@ -30,14 +30,49 @@
     <script src="builder.js"></script>
     <script src="main.js"></script>
     <audio id="click-sound" preload="auto" src="assets/sounds/click/yarzur_ofc-sfx42-click-sel-534293.mp3"></audio>
+    <audio id="home-music" preload="auto"></audio>
     <script>
         const playButton = document.querySelector('.play-button');
         const homeScreen = document.getElementById('home-screen');
         const builderScreen = document.getElementById('builder-screen');
         const clickSound = document.getElementById('click-sound');
+        const homeMusic = document.getElementById('home-music');
+        const homeMusicTracks = [
+            'assets/music/home/maksymmalko-game-minecraft-gaming-background-music-402451.mp3',
+            'assets/music/home/serhii_kliets-spaceship-arcade-shooter-game-background-soundtrack-318508.mp3'
+        ];
+        let homeMusicIndex = 0;
+
+        function playHomeMusicTrack() {
+            homeMusic.src = homeMusicTracks[homeMusicIndex];
+            homeMusic.currentTime = 0;
+            return homeMusic.play().catch(() => false);
+        }
+
+        function startHomeMusic() {
+            if (!homeMusic.paused) return;
+
+            playHomeMusicTrack().then((started) => {
+                if (started === false) {
+                    document.addEventListener('pointerdown', startHomeMusic, { once: true });
+                    document.addEventListener('keydown', startHomeMusic, { once: true });
+                }
+            });
+        }
+
+        homeMusic.addEventListener('ended', () => {
+            homeMusicIndex = (homeMusicIndex + 1) % homeMusicTracks.length;
+            playHomeMusicTrack();
+        });
+
+        window.stopHomeMusic = () => {
+            homeMusic.pause();
+            homeMusic.currentTime = 0;
+        };
 
         clickSound.volume = 0.25;
         clickSound.load();
+        startHomeMusic();
 
         playButton.addEventListener('click', (event) => {
             event.preventDefault();
@@ -46,6 +81,7 @@
             builderScreen.hidden = false;
             builderScreen.style.display = 'flex';
             clickSound.play().catch(() => {});
+            startHomeMusic();
         });
 
         document.addEventListener('click', (event) => {
