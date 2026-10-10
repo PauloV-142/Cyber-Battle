@@ -78,14 +78,14 @@ const state = {
   currentPlayer: 1,
   selections: {
     1: {
-      belt: 'belt-propulsores',
-      chassis: 'chassis-pesado',
-      cannon: 'cannon-rapido'
+      belt: 'belt-esteiras',
+      chassis: 'chassis-leve',
+      cannon: 'cannon-parabolica'
     },
     2: {
-      belt: 'belt-propulsores',
-      chassis: 'chassis-pesado',
-      cannon: 'cannon-onda-de-choque'
+      belt: 'belt-esteiras',
+      chassis: 'chassis-leve',
+      cannon: 'cannon-parabolica'
     }
   }
 };
@@ -291,13 +291,7 @@ function render() {
 
   const header = document.createElement('header');
   header.className = 'builder-header';
-  header.innerHTML = `<h1>JOGADOR ${player}</h1>
-    <div class="toolbar">
-      <button type="button">Editar</button>
-      <button type="button">Substituir</button>
-      <button type="button">Animar</button>
-      <button type="button">Posição</button>
-    </div>`;
+  header.innerHTML = `<h1>JOGADOR ${player}</h1>`;
 
   const layout = document.createElement('div');
   layout.className = 'builder-layout';
