@@ -61,8 +61,9 @@ button {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 16px 18px;
+    padding: 3vh 4vw;
     background: #020a1b;
+    overflow: auto;
 }
 
 #builder-screen[hidden] {
@@ -181,11 +182,13 @@ button {
 }
 
 .builder-frame {
-    width: min(1400px, 96vw);
-    min-height: 760px;
-    padding: 18px 12px 10px;
+    width: min(1240px, 92vw);
+    min-height: 0;
+    padding: 10px 8px;
     border-radius: 18px;
     background: transparent;
+    transform: scale(0.9);
+    transform-origin: center center;
 }
 
 .builder-header {
@@ -233,8 +236,8 @@ button {
 
 .builder-layout {
     display: grid;
-    grid-template-columns: minmax(680px, 1.7fr) minmax(360px, 0.9fr);
-    gap: 28px;
+    grid-template-columns: minmax(0, 1.7fr) minmax(280px, 0.9fr);
+    gap: 20px;
     align-items: stretch;
 }
 
@@ -242,15 +245,15 @@ button {
     background: rgba(6, 16, 38, 0.6);
     border: 3px solid var(--border);
     box-shadow: 0 0 0 2px rgba(8, 179, 255, 0.25), 0 0 18px rgba(17, 215, 255, 0.28);
-    border-radius: 26px;
-    padding: 16px 18px 14px;
-    min-height: 620px;
+    border-radius: 20px;
+    padding: 12px 14px 12px;
+    min-height: 0;
 }
 
 .panel-parts {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 12px;
 }
 
 .panel-title {
@@ -268,7 +271,7 @@ button {
     background: rgba(18, 120, 153, 0.18);
     border-radius: 18px;
     border: 1px solid rgba(124, 232, 255, 0.25);
-    padding: 10px 12px 12px;
+    padding: 8px 10px 10px;
 }
 
 .group-title {
@@ -285,14 +288,14 @@ button {
 .part-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(125px, 1fr));
-    gap: 12px;
+    gap: 9px;
 }
 
 .part-card {
     position: relative;
-    min-height: 106px;
+    min-height: 84px;
     border: 2px solid rgba(115, 218, 255, 0.7);
-    border-radius: 16px;
+    border-radius: 13px;
     background: linear-gradient(180deg, rgba(126, 220, 255, 0.16), rgba(70, 136, 170, 0.2));
     color: var(--text);
     display: flex;
@@ -342,8 +345,8 @@ button {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    gap: 18px;
-    min-height: 620px;
+    gap: 12px;
+    min-height: 0;
 }
 
 .preview-card {
@@ -351,7 +354,7 @@ button {
     border-radius: 22px;
     background: rgba(10, 34, 55, 0.65);
     box-shadow: 0 0 0 2px rgba(12, 195, 255, 0.18), 0 0 14px rgba(16, 189, 255, 0.23);
-    padding: 18px 16px 14px;
+    padding: 12px 12px 10px;
 }
 
 .preview-title {
@@ -367,11 +370,11 @@ button {
 .tank-preview {
     position: relative;
     width: 100%;
-    height: 210px;
+    height: 160px;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 18px 0 16px;
+    margin: 10px 0 12px;
     border-radius: 14px;
     background: rgba(1, 13, 23, 0.18);
 }
@@ -388,20 +391,20 @@ button {
 
 .preview-belt {
     z-index: 1;
-    scale: 2;
+    scale: 1.5;
     margin-left: 33.33%;
 }
 
 
 .preview-chassis {
     z-index: 2;
-    scale: 2;
+    scale: 1.5;
     margin-left: 33.33%;
 }
 
 .preview-cannon {
     z-index: 3;
-    scale: 2;
+    scale: 1.5;
     margin-left: 33.33%;
 }
 
@@ -451,14 +454,14 @@ button {
 
 .primary-btn {
     width: 100%;
-    min-height: 96px;
+    min-height: 72px;
     border: none;
     border-radius: 18px;
     background: linear-gradient(180deg, rgba(120, 224, 255, 0.46), rgba(80, 166, 214, 0.7));
     box-shadow: inset 0 0 0 2px rgba(255,255,255,0.12), 0 0 18px rgba(63, 199, 255, 0.35);
     color: var(--text);
     font-family: 'Orbitron', sans-serif;
-    font-size: clamp(1.9rem, 2vw, 2.7rem);
+    font-size: clamp(1.45rem, 2vw, 2.2rem);
     letter-spacing: 0.08em;
     font-weight: 800;
     text-transform: uppercase;
