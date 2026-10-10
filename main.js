@@ -263,6 +263,7 @@ function createCompositeTank(scene, tankDefinition, x, y, angle = 0) {
 }
 
 window.startGameWithSelections = function (selections) {
+    const homeScreen = document.getElementById('home-screen');
     const builderScreen = document.getElementById('builder-screen');
     const gameScreen = document.getElementById('game-screen');
 
@@ -273,6 +274,9 @@ window.startGameWithSelections = function (selections) {
 
     if (builderScreen) {
         builderScreen.style.display = 'none';
+    }
+    if (homeScreen) {
+        homeScreen.style.display = 'none';
     }
 
     gameScreen.hidden = false;

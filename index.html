@@ -1,12 +1,17 @@
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cyber Tank</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;800;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.0/dist/phaser.js"></script>
 </head>
 <body>
-    <main class="home-screen">
+    <main id="home-screen" class="home-screen">
         <img class="home-light home-light--top" src="assets/home/HomeLightSide.png" alt="">
         <img class="home-light home-light--bottom" src="assets/home/HomeLightSide.png" alt="">
 
@@ -15,30 +20,40 @@
 
         <section class="home-content" aria-label="Menu principal">
             <h1 class="game-title">Cyber<br>Tank</h1>
-            <a class="play-button" href="tankmount.html" data-click-sound="assets/sounds/click/yarzur_ofc-sfx42-click-sel-534293.mp3">Jogar</a>
+            <a class="play-button" href="#builder-screen" data-click-sound="assets/sounds/click/yarzur_ofc-sfx42-click-sel-534293.mp3">Jogar</a>
         </section>
     </main>
 
-            <audio id="click-sound" preload="auto" src="assets/sounds/click/yarzur_ofc-sfx42-click-sel-534293.mp3"></audio>
-            <script>
-                const playButton = document.querySelector('.play-button');
-                const clickSound = document.getElementById('click-sound');
+    <div id="builder-screen" hidden style="display: none;"></div>
+    <div id="game-screen" hidden></div>
 
-                clickSound.volume = 0.25;
-                clickSound.load();
+    <script src="builder.js"></script>
+    <script src="main.js"></script>
+    <audio id="click-sound" preload="auto" src="assets/sounds/click/yarzur_ofc-sfx42-click-sel-534293.mp3"></audio>
+    <script>
+        const playButton = document.querySelector('.play-button');
+        const homeScreen = document.getElementById('home-screen');
+        const builderScreen = document.getElementById('builder-screen');
+        const clickSound = document.getElementById('click-sound');
 
-                playButton.addEventListener('click', (event) => {
-                    event.preventDefault();
-                    clickSound.currentTime = 0;
+        clickSound.volume = 0.25;
+        clickSound.load();
 
-                    clickSound.play()
-                        .catch(() => {})
-                        .finally(() => {
-                            window.setTimeout(() => {
-                                window.location.href = playButton.href;
-                            }, 350);
-                        });
-                });
-            </script>
+        playButton.addEventListener('click', (event) => {
+            event.preventDefault();
+            clickSound.currentTime = 0;
+            homeScreen.style.display = 'none';
+            builderScreen.hidden = false;
+            builderScreen.style.display = 'flex';
+            clickSound.play().catch(() => {});
+        });
+
+        document.addEventListener('click', (event) => {
+            if (!event.target.closest('#builder-screen button')) return;
+
+            clickSound.currentTime = 0;
+            clickSound.play().catch(() => {});
+        }, true);
+    </script>
 </body>
 </html>

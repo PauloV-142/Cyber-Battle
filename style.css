@@ -65,6 +65,10 @@ button {
     background: #020a1b;
 }
 
+#builder-screen[hidden] {
+    display: none !important;
+}
+
     isolation: isolate;
     background: #050023;
 }
