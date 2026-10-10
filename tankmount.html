@@ -19,4 +19,18 @@
     <div id="game-screen" hidden></div>
     <script src="builder.js"></script>
     <script src="main.js"></script>
+    <audio id="builder-click-sound" preload="auto" src="assets/sounds/click/yarzur_ofc-sfx42-click-sel-534293.mp3"></audio>
+    <script>
+        const builderClickSound = document.getElementById('builder-click-sound');
+        builderClickSound.volume = 0.25;
+        builderClickSound.load();
+
+        document.addEventListener('click', (event) => {
+            const button = event.target.closest('button');
+            if (!button) return;
+
+            builderClickSound.currentTime = 0;
+            builderClickSound.play().catch(() => {});
+        });
+    </script>
 </body>

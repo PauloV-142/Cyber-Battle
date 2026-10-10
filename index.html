@@ -1,5 +1,3 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -17,8 +15,30 @@
 
         <section class="home-content" aria-label="Menu principal">
             <h1 class="game-title">Cyber<br>Tank</h1>
-            <a class="play-button" href="tankmount.html">Jogar</a>
+            <a class="play-button" href="tankmount.html" data-click-sound="assets/sounds/click/yarzur_ofc-sfx42-click-sel-534293.mp3">Jogar</a>
         </section>
     </main>
+
+            <audio id="click-sound" preload="auto" src="assets/sounds/click/yarzur_ofc-sfx42-click-sel-534293.mp3"></audio>
+            <script>
+                const playButton = document.querySelector('.play-button');
+                const clickSound = document.getElementById('click-sound');
+
+                clickSound.volume = 0.25;
+                clickSound.load();
+
+                playButton.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    clickSound.currentTime = 0;
+
+                    clickSound.play()
+                        .catch(() => {})
+                        .finally(() => {
+                            window.setTimeout(() => {
+                                window.location.href = playButton.href;
+                            }, 350);
+                        });
+                });
+            </script>
 </body>
 </html>
