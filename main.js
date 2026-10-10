@@ -3,6 +3,7 @@ let game = null;
 const bulletHitSoundKeys = ['bulletHit', 'bulletHit2', 'bulletHit3'];
 const tankCollisionSoundKeys = ['tankCollision1', 'tankCollision2'];
 const tankGunSoundKeys = ['tankGun1', 'tankGun2', 'tankGun3'];
+const gameMusicKeys = ['gameMusic1', 'gameMusic2', 'gameMusic3'];
 
 function randomSoundKey(keys) {
     return keys[Math.floor(Math.random() * keys.length)];
@@ -116,6 +117,30 @@ function deactivateProjectile(scene, projectile) {
     stopProjectileSound(projectile);
     projectile.owner = null;
     projectile.disableBody(true, true);
+}
+
+function playGameMusicTrack(scene, trackIndex = 0) {
+    if (!scene.sys || !scene.sys.isActive()) return;
+
+    const music = scene.sound.add(gameMusicKeys[trackIndex], { volume: 0.21 });
+    scene.gameMusic = music;
+    music.once('complete', () => {
+        music.destroy();
+        playGameMusicTrack(scene, (trackIndex + 1) % gameMusicKeys.length);
+    });
+    music.play();
+}
+
+function startGameMusic(scene) {
+    const audioContext = scene.sound && scene.sound.context;
+    if (audioContext && audioContext.state === 'suspended') {
+        audioContext.resume()
+            .then(() => playGameMusicTrack(scene))
+            .catch(() => {});
+        return;
+    }
+
+    playGameMusicTrack(scene);
 }
 
 function buildPhaserConfig() {
@@ -270,6 +295,9 @@ window.startGameWithSelections = function (selections) {
     if (window.stopHomeMusic) {
         window.stopHomeMusic();
     }
+    if (window.startGameMusic) {
+        window.startGameMusic();
+    }
 
     if (!gameScreen) {
         console.error('Missing element #game-screen.');
@@ -326,6 +354,9 @@ function preload() {
     this.load.audio('tankMoving', 'assets/sounds/tank/movement/tankMoving.wav');
     this.load.audio('tankStoppingMovement', 'assets/sounds/tank/movement/tankStoppingMovement.mp3');
     this.load.audio('tankRebirth', 'assets/sounds/tank/tankRebirth.mp3');
+    this.load.audio('gameMusic1', 'assets/music/game/maksymmalko-game-gaming-minecraft-background-music-362844.mp3');
+    this.load.audio('gameMusic2', 'assets/music/game/mondamusic-retro-arcade-game-music-512837.mp3');
+    this.load.audio('gameMusic3', 'assets/music/game/nunusev-video-game-battle-music-535133.mp3');
 
     [
         ['belt-esteiras', 'assets/tanks/belts/Track01.png'],
@@ -414,6 +445,16 @@ function create() {
     buildingsLayer.setCollisionByExclusion([-1, 0]);
 
     this.physics.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+    if (!window.startGameMusic) {
+        startGameMusic(this);
+    }
+    this.events.once('shutdown', () => {
+        if (this.gameMusic) {
+            this.gameMusic.stop();
+            this.gameMusic.destroy();
+            this.gameMusic = null;
+        }
+    });
 
     getTankCatalog().then((catalog) => {
         const player1Build = buildTankSelection(catalog, selectionState[1]);
