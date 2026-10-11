@@ -146,9 +146,8 @@ button {
 }
 
 .home-light--bottom {
-    right: -12vw;
-    bottom: -12vw;
-    transform: rotate(180deg);
+    right: -22vw;
+    bottom: -22vw;
 }
 
 .home-controller {
@@ -158,14 +157,15 @@ button {
 }
 
 .home-controller--top {
-    top: -12px;
-    left: -80px;
+    top: -15px;
+    left: -90px;
+    transform: rotate(35deg);
 }
 
 .home-controller--bottom {
-    right: -40px;
-    bottom: 0;
-    transform: rotate(180deg);
+    right: -60px;
+    bottom: -25px;
+    transform: rotate(35deg);
 }
 
 
