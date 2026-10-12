@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CyberBattle - PhaserJS V0.4.4 (Alpha)</title>
+    <title id="gameTitle"> </title>
 
     <!-- <script src="assets/phaser.js"></script> -->
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.0/dist/phaser.js"></script>
@@ -37,6 +37,12 @@
     </main>
 
     <script src="main.js"></script>
+    <script> 
+        import packageInfo from "./package.json";
 
+        const version = packageInfo.version;
+
+        document.getElementById("gameTitle").textContent = `Cyber Battle - PhaserJS V${version} (Alpha)`;
+    </script>
 </body>
 </html>
