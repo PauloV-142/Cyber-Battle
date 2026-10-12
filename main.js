@@ -528,10 +528,8 @@ function create() {
         const onProjectileTankCollision = (projectile, tank) => handleProjectileHit(this, projectile, tank);
         this.physics.add.collider(this.player1Projectiles, buildingsLayer, onProjectileBuildingCollision);
         this.physics.add.collider(this.player2Projectiles, buildingsLayer, onProjectileBuildingCollision);
-        this.physics.add.collider(this.player1Projectiles, this.player1, onProjectileTankCollision);
         this.physics.add.collider(this.player1Projectiles, this.player2, onProjectileTankCollision);
         this.physics.add.collider(this.player2Projectiles, this.player1, onProjectileTankCollision);
-        this.physics.add.collider(this.player2Projectiles, this.player2, onProjectileTankCollision);
         this.physics.world.on('worldbounds', (body) => {
             const projectile = body.gameObject;
             if (projectile && projectile.flyingSound) {
