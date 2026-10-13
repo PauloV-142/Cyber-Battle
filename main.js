@@ -1,4 +1,5 @@
 let game = null;
+let gameLoadingSplashShownAt = 0;
 
 const bulletHitSoundKeys = ['bulletHit', 'bulletHit2', 'bulletHit3'];
 const tankCollisionSoundKeys = ['tankCollision1', 'tankCollision2'];
@@ -287,10 +288,43 @@ function createCompositeTank(scene, tankDefinition, x, y, angle = 0) {
     return container;
 }
 
+function showGameLoadingSplash() {
+    const splash = document.getElementById('startup-splash');
+    const image = splash?.querySelector('.startup-splash__image');
+    if (!splash || !image) return;
+
+    splash.hidden = false;
+    splash.classList.remove('startup-splash--closing');
+    gameLoadingSplashShownAt = performance.now();
+    image.classList.remove('startup-splash__image--entering');
+    void image.offsetWidth;
+    image.classList.add('startup-splash__image--entering');
+}
+
+function hideGameLoadingSplash() {
+    const splash = document.getElementById('startup-splash');
+    if (!splash) return;
+
+    const minimumDisplayTime = 1200;
+    const elapsed = performance.now() - gameLoadingSplashShownAt;
+    const remainingDisplayTime = Math.max(0, minimumDisplayTime - elapsed);
+
+    window.setTimeout(() => {
+        splash.classList.add('startup-splash--closing');
+    }, remainingDisplayTime);
+
+    window.setTimeout(() => {
+        splash.hidden = true;
+        splash.classList.remove('startup-splash--closing');
+    }, remainingDisplayTime + 500);
+}
+
 window.startGameWithSelections = function (selections) {
     const homeScreen = document.getElementById('home-screen');
     const builderScreen = document.getElementById('builder-screen');
     const gameScreen = document.getElementById('game-screen');
+
+    showGameLoadingSplash();
 
     if (window.stopHomeMusic) {
         window.stopHomeMusic();
@@ -301,6 +335,7 @@ window.startGameWithSelections = function (selections) {
 
     if (!gameScreen) {
         console.error('Missing element #game-screen.');
+        hideGameLoadingSplash();
         return;
     }
 
@@ -539,8 +574,10 @@ function create() {
 
         this.player1LastShot = 0;
         this.player2LastShot = 0;
+        hideGameLoadingSplash();
     }).catch((error) => {
         console.error('Failed to build tanks from selected parts', error);
+        hideGameLoadingSplash();
     });
 
     this.cameras.main.stopFollow();

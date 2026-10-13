@@ -51,6 +51,77 @@ body {
     place-items: center;
 }
 
+.startup-splash {
+    position: fixed;
+    z-index: 20;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    background: #040b18;
+    opacity: 1;
+    transition: opacity 0.5s ease, visibility 0.5s ease;
+}
+
+.startup-splash[hidden] {
+    display: none;
+}
+
+.startup-splash--closing {
+    opacity: 0;
+    visibility: hidden;
+}
+
+.startup-splash__image {
+    position: relative;
+    z-index: 1;
+    width: 20vw;
+    height: 20vw;
+    min-width: 120px;
+    min-height: 120px;
+    max-width: 20vh;
+    max-height: 20vh;
+    border: 1px solid rgba(124, 232, 255, 0.42);
+    border-radius: 1em;
+    box-shadow: 0 0 34px 14px rgba(78, 211, 255, 0.28), 0 0 90px 28px rgba(48, 173, 255, 0.16);
+    object-fit: cover;
+    opacity: 1;
+    transform: scale(1);
+}
+
+.startup-splash__image--entering {
+    animation: startup-splash-pop 0.8s cubic-bezier(.2, .75, .25, 1) forwards;
+}
+
+.startup-splash::before {
+    position: absolute;
+    z-index: 0;
+    width: 34vw;
+    height: 34vw;
+    min-width: 260px;
+    min-height: 260px;
+    border-radius: 50%;
+    background: rgba(89, 216, 255, 0.18);
+    content: '';
+    filter: blur(58px);
+    pointer-events: none;
+}
+
+@keyframes startup-splash-pop {
+    0% {
+        opacity: 0;
+        transform: scale(0.5);
+    }
+    70% {
+        opacity: 1;
+        transform: scale(1.08);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
 button {
     font: inherit;
 }
