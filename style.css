@@ -565,3 +565,191 @@ button {
         gap: 8px;
     }
 }
+
+/* BATTLE HUD */
+#game-screen {
+    position: relative;
+    display: none;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 0;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+    background: #020a1b;
+}
+
+#game-canvas {
+    position: relative;
+    display: flex;
+    flex: 1 1 0;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+    background:
+        linear-gradient(90deg, rgba(58, 214, 255, 0.08) 1px, transparent 1px),
+        linear-gradient(rgba(58, 214, 255, 0.08) 1px, transparent 1px),
+        #020a1b;
+    background-size: 48px 48px;
+}
+
+#game-canvas canvas {
+    display: block;
+    margin: 0 auto;
+    max-width: 100%;
+    max-height: 100%;
+}
+
+.scoreboard {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: center;
+    gap: clamp(12px, 4vw, 72px);
+    flex: 0 0 clamp(82px, 12vh, 126px);
+    width: 100%;
+    padding: 12px clamp(10px, 2.5vw, 42px);
+    border-bottom: 2px solid rgba(58, 214, 255, 0.72);
+    background:
+        linear-gradient(90deg, #050023, #08052b 50%, #050023),
+        var(--bg-1);
+    box-shadow: 0 8px 28px rgba(0, 210, 255, 0.13);
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+}
+
+.scoreboard__player {
+    display: flex;
+    align-items: center;
+    gap: clamp(10px, 2vw, 28px);
+    min-width: 0;
+    padding: 8px 12px;
+    border: 1px solid var(--cyan);
+    background: #03001f;
+}
+
+.scoreboard__player--one { border-color: var(--cyan); }
+.scoreboard__player--two { border-color: var(--orange); justify-content: flex-end; }
+
+.scoreboard__identity {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.scoreboard__identity strong {
+    overflow: hidden;
+    color: var(--text);
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(0.7rem, 1.35vw, 1.15rem);
+    letter-spacing: 0.06em;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.scoreboard__health {
+    flex: 1 1 0;
+    min-width: 40px;
+    height: 24px;
+    padding: 3px;
+    border: 2px solid var(--green);
+    background: #08052b;
+}
+
+.scoreboard__health[data-health="medium"] {
+    border-color: var(--orange);
+}
+
+.scoreboard__health[data-health="low"] {
+    border-color: #ff394b;
+}
+
+.scoreboard__health span {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: var(--green);
+    box-shadow: 0 0 10px rgba(48, 220, 143, .5);
+    transition: width .2s ease, background-color .2s ease;
+}
+
+.scoreboard__health[data-health="medium"] span {
+    background: var(--orange);
+    box-shadow: 0 0 10px rgba(255, 159, 67, .5);
+}
+
+.scoreboard__health[data-health="low"] span {
+    background: #ff394b;
+    box-shadow: 0 0 10px rgba(255, 57, 75, .5);
+}
+
+.scoreboard__score {
+    display: grid;
+    flex: 0 0 clamp(34px, 4vw, 48px);
+    aspect-ratio: 1;
+    place-items: center;
+    border-radius: 50%;
+    color: #fff;
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(1rem, 1.7vw, 1.45rem);
+    line-height: 1;
+}
+
+.scoreboard__score--tie {
+    background: #8d8f99;
+    box-shadow: 0 0 12px rgba(190, 194, 204, .45);
+}
+
+.scoreboard__score--winning {
+    background: #11d865;
+    box-shadow: 0 0 14px rgba(17, 216, 101, .75);
+}
+
+.scoreboard__score--losing {
+    background: #ff303b;
+    box-shadow: 0 0 14px rgba(255, 48, 59, .75);
+}
+
+.scoreboard__pause {
+    display: grid;
+    width: clamp(54px, 7vw, 76px);
+    height: clamp(32px, 5vh, 48px);
+    place-items: center;
+    border: 0;
+    color: #fff;
+    background: #16d45e;
+    cursor: pointer;
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(1.1rem, 2vw, 1.5rem);
+    line-height: 1;
+}
+
+.scoreboard__pause.is-paused {
+    background: #ff394b;
+}
+
+@media (max-width: 680px) {
+    .scoreboard {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        padding: 8px;
+    }
+
+    .scoreboard__pause {
+        grid-column: 1 / -1;
+        grid-row: 2;
+    }
+
+    .scoreboard__player {
+        min-height: 54px;
+        padding: 7px;
+    }
+
+    .scoreboard__player--two {
+        grid-column: 2;
+    }
+}

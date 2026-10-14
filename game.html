@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title id="gameTitle"> </title>
     <link rel="icon" type="image/x-icon" href="assets/cyber_battle.ico">
+    <link rel="stylesheet" href="style.css">
     <!-- <script src="assets/phaser.js"></script> -->
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.0/dist/phaser.js"></script>
     <!-- The phaser.min.js is performant for production, but not for development -->
@@ -19,20 +20,26 @@
             /* background: #000; */
         }
 
-        #game-screen {
-            width: 100vw;
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+        #game-screen { display: flex; }
     </style>
 </head>
 <body>
     <main>
         <section id="game-screen">
-            <!-- This is where will be placed the PixiJS Canvas -->
-            
+            <section class="scoreboard" aria-label="Placar da batalha">
+                <div class="scoreboard__player scoreboard__player--one">
+                    <div class="scoreboard__identity"><strong>JOGADOR 1</strong></div>
+                    <div class="scoreboard__health"><span id="player-one-health"></span></div>
+                    <strong class="scoreboard__score scoreboard__score--tie" id="player-one-score">0</strong>
+                </div>
+                <button class="scoreboard__pause" id="pause-game" type="button" aria-label="Pausar jogo" aria-pressed="false"><span aria-hidden="true">Ⅱ</span></button>
+                <div class="scoreboard__player scoreboard__player--two">
+                    <strong class="scoreboard__score scoreboard__score--tie" id="player-two-score">0</strong>
+                    <div class="scoreboard__health"><span id="player-two-health"></span></div>
+                    <div class="scoreboard__identity"><strong>JOGADOR 2</strong></div>
+                </div>
+            </section>
+            <div id="game-canvas" aria-label="Mapa da batalha"></div>
         </section>
     </main>
 

@@ -191,6 +191,15 @@
 - Now, there's a loading page before the game starts
 - Author: Joao-Pedro-123
 
+# Feat: The game now has a score board V0.6.0
+- Now the players can see their score and life
+- The game can be paused and unpaused now
+
+## Next features:
+- Score Board
+- Settings(Audio volume)
+- Botão de voltar na montagem dos tanques
+
 **Versionamento**
 
 Sistema que registra as mudanças feitas em um arquivo ou em conjunto de arquivos.

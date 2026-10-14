@@ -153,7 +153,7 @@ function buildPhaserConfig() {
             width: 1920,
             height: 1080,
         },
-        parent: 'game-screen',
+        parent: 'game-canvas',
         scene: {
             preload: preload,
             create: create,
@@ -347,7 +347,7 @@ window.startGameWithSelections = function (selections) {
     }
 
     gameScreen.hidden = false;
-    gameScreen.style.display = 'block';
+    gameScreen.style.display = 'flex';
 
     window.__selectedTankBuild = selections || {
         1: { belt: 'belt-esteiras', chassis: 'chassis-equilibrado', cannon: 'cannon-parabolica' },
@@ -459,13 +459,57 @@ function registerTankCollision(scene, contactKey, x) {
     }
 }
 
+function updateScoreboard(scene, player, points = 100) {
+    const playerNumber = player === scene.player1 ? 'one' : 'two';
+    scene.scoreboard[playerNumber].hits += 1;
+    scene.scoreboard[playerNumber].score += points;
+    updateScoreboardDisplay(scene);
+}
+
+function updateHealthDisplay(playerNumber, tank) {
+    const health = Phaser.Math.Clamp(tank.life / tank.maxLife, 0, 1);
+    const healthBar = document.getElementById(`player-${playerNumber}-health`);
+    if (!healthBar) return;
+    healthBar.style.width = `${health * 100}%`;
+    healthBar.parentElement.dataset.health = health > 0.5 ? 'high' : (health > 0.25 ? 'medium' : 'low');
+}
+
+function updateScoreboardDisplay(scene) {
+    const oneScore = document.getElementById('player-one-score');
+    const twoScore = document.getElementById('player-two-score');
+    if (!oneScore || !twoScore) return;
+    oneScore.textContent = String(scene.scoreboard.one.score);
+    twoScore.textContent = String(scene.scoreboard.two.score);
+    oneScore.className = `scoreboard__score ${scene.scoreboard.one.score === scene.scoreboard.two.score ? 'scoreboard__score--tie' : scene.scoreboard.one.score > scene.scoreboard.two.score ? 'scoreboard__score--winning' : 'scoreboard__score--losing'}`;
+    twoScore.className = `scoreboard__score ${scene.scoreboard.two.score === scene.scoreboard.one.score ? 'scoreboard__score--tie' : scene.scoreboard.two.score > scene.scoreboard.one.score ? 'scoreboard__score--winning' : 'scoreboard__score--losing'}`;
+    if (scene.player1) updateHealthDisplay('one', scene.player1);
+    if (scene.player2) updateHealthDisplay('two', scene.player2);
+}
+
 function handleProjectileHit(scene, projectile, target) {
     if (!projectile || !projectile.active || (target && projectile.owner === target)) return;
     playRandomSound(scene, bulletHitSoundKeys, projectile.x, { volume: 0.55 });
+    if (target && projectile.owner) {
+        updateScoreboard(scene, projectile.owner);
+        const ownerConfig = projectile.owner === scene.player1 ? scene.player1Config : scene.player2Config;
+        target.life = Math.max(0, target.life - ownerConfig.projectile.damage);
+        updateScoreboardDisplay(scene);
+    }
     deactivateProjectile(scene, projectile);
 }
 
+function centerBattleMap(scene, map) {
+    scene.cameras.main.centerOn(map.widthInPixels / 2, map.heightInPixels / 2);
+}
+
 function create() {
+    this.scoreboard = {
+        one: { score: 0, hits: 0 },
+        two: { score: 0, hits: 0 }
+    };
+    window.__activeBattleScene = this;
+    updateScoreboardDisplay(this);
+
     const selectionState = window.__selectedTankBuild || {
         1: { belt: 'belt-esteiras', chassis: 'chassis-equilibrado', cannon: 'cannon-parabolica' },
         2: { belt: 'belt-propulsores', chassis: 'chassis-pesado', cannon: 'cannon-onda-de-choque' }
@@ -523,6 +567,11 @@ function create() {
 
         this.player1Config = player1Config;
         this.player2Config = player2Config;
+        this.player1.maxLife = this.player1Config.life || 100;
+        this.player2.maxLife = this.player2Config.life || 100;
+        this.player1.life = this.player1.maxLife;
+        this.player2.life = this.player2.maxLife;
+        updateScoreboardDisplay(this);
 
         this.player1.muzzleOffset = this.player1Config.muzzleOffset;
         this.player2.muzzleOffset = this.player2Config.muzzleOffset;
@@ -582,7 +631,8 @@ function create() {
 
     this.cameras.main.stopFollow();
     this.cameras.main.setZoom(1);
-    this.cameras.main.centerOn(map.widthInPixels / 2, map.heightInPixels / 2);
+    centerBattleMap(this, map);
+    this.scale.on('resize', () => centerBattleMap(this, map));
 }
 
 function applyVelocity(entity, velocityX, velocityY) {
@@ -653,6 +703,21 @@ function update() {
         this.player2LastShot = this.time.now;
     }
 }
+
+function toggleGamePause() {
+    const scene = window.__activeBattleScene;
+    const button = document.getElementById('pause-game');
+    if (!scene || !button) return;
+    const isPaused = scene.scene.isPaused();
+    if (isPaused) scene.scene.resume();
+    else scene.scene.pause();
+    button.classList.toggle('is-paused', !isPaused);
+    button.setAttribute('aria-pressed', String(!isPaused));
+    button.setAttribute('aria-label', isPaused ? 'Pausar jogo' : 'Retomar jogo');
+    button.firstElementChild.textContent = isPaused ? 'Ⅱ' : '▶';
+}
+
+document.getElementById('pause-game')?.addEventListener('click', toggleGamePause);
 
 function shootProjectile(scene, player, projectileData, projectileGroup) {
     const spawnX = player.x + Math.cos(player.rotation) * player.muzzleOffset;
