@@ -214,6 +214,24 @@ function renderProgress(label, value, min, max, theme) {
   return wrapper;
 }
 
+const previewCenter = { x: 0, y: 0 };
+const previewLayout = {
+  belt: { width: 26, height: 108 },
+  chassis: { width: 84, height: 136 },
+  cannon: { width: 32, height: 88 }
+};
+
+function positionPreviewLayer(layer, type, display, xOffset = 0, yScale = 0.35) {
+  const size = previewLayout[type];
+  layer.style.width = `${size.width}px`;
+  layer.style.height = `${size.height}px`;
+  layer.style.left = `calc(50% + ${previewCenter.x + xOffset}px)`;
+  layer.style.top = `calc(50% + ${previewCenter.y + display.y * yScale}px)`;
+  layer.style.marginLeft = '0';
+  layer.style.scale = '1';
+  layer.style.transform = 'translate(-50%, -50%)';
+}
+
 function renderPreview(player, stats) {
   const preview = document.createElement('div');
   preview.className = 'tank-preview';
@@ -224,35 +242,28 @@ function renderPreview(player, stats) {
   leftBelt.src = stats.belt.sprite;
   leftBelt.alt = stats.belt.name;
   const beltDisplay = stats.belt.display;
-  leftBelt.style.left = `${beltDisplay.leftX}px`;
-  leftBelt.style.top = `${beltDisplay.y}px`;
-  leftBelt.style.transform = `scale(${beltDisplay.scaleX}, ${beltDisplay.scaleY})`;
+  const beltGap = beltDisplay.rightX / 2;
+  positionPreviewLayer(leftBelt, 'belt', beltDisplay, -beltGap);
 
   const rightBelt = document.createElement('img');
   rightBelt.className = 'preview-layer preview-belt right';
   rightBelt.src = stats.belt.sprite;
   rightBelt.alt = stats.belt.name;
-  rightBelt.style.left = `${beltDisplay.leftX + beltDisplay.rightX}px`;
-  rightBelt.style.top = `${beltDisplay.y}px`;
-  rightBelt.style.transform = `scale(${beltDisplay.scaleX}, ${beltDisplay.scaleY})`;
+  positionPreviewLayer(rightBelt, 'belt', beltDisplay, beltGap);
 
   const chassis = document.createElement('img');
   chassis.className = 'preview-layer preview-chassis';
   chassis.src = stats.chassis.sprite;
   chassis.alt = stats.chassis.name;
   const chassisDisplay = stats.chassis.display;
-  chassis.style.left = `${chassisDisplay.x}px`;
-  chassis.style.top = `${chassisDisplay.y}px`;
-  chassis.style.transform = `scale(${chassisDisplay.scaleX}, ${chassisDisplay.scaleY})`;
+  positionPreviewLayer(chassis, 'chassis', chassisDisplay, chassisDisplay.x * 0.35);
 
   const cannon = document.createElement('img');
   cannon.className = 'preview-layer preview-cannon';
   cannon.src = stats.cannon.sprite;
   cannon.alt = stats.cannon.name;
   const cannonDisplay = stats.cannon.display;
-  cannon.style.left = `${cannonDisplay.x}px`;
-  cannon.style.top = `${cannonDisplay.y}px`;
-  cannon.style.transform = `scale(${cannonDisplay.scaleX}, ${cannonDisplay.scaleY})`;
+  positionPreviewLayer(cannon, 'cannon', cannonDisplay, cannonDisplay.x * 0.35);
 
   preview.appendChild(leftBelt);
   preview.appendChild(rightBelt);

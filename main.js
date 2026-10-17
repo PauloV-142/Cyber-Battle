@@ -269,7 +269,7 @@ function createCompositeTank(scene, tankDefinition, x, y, angle = 0) {
         .setScale(beltDisplay.scaleX || 1, beltDisplay.scaleY || 1);
 
     const chassisSprite = scene.add.image(chassisDisplay.x || 0, chassisDisplay.y || 0, tankDefinition.chassis.id)
-        .setOrigin(0.5)
+        .setOrigin(0)
         .setScale(chassisDisplay.scaleX || 1, chassisDisplay.scaleY || 1);
 
     const cannonSprite = scene.add.image(cannonDisplay.x || 0, cannonDisplay.y || 0, tankDefinition.cannon.id)
