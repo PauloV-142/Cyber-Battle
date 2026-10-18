@@ -6,7 +6,7 @@ const fallbackCatalog = {
       id: 'belt-esteiras',
       name: 'Esteiras',
       type: 'belt',
-      sprite: 'assets/tanks/belts/Track01.png',
+      sprite: 'assets/tanks/belts/track01.png',
       stats: { speed: 80, drag: 0.55, weight: 18, traction: 1 },
       display: { x: 0, y: 0, scaleX: 1.0, scaleY: 1.0 }
     },
@@ -14,7 +14,7 @@ const fallbackCatalog = {
       id: 'belt-propulsores',
       name: 'Propulsores',
       type: 'belt',
-      sprite: 'assets/tanks/belts/Track02.png',
+      sprite: 'assets/tanks/belts/track02.png',
       stats: { speed: 120, drag: 0.35, weight: 12, traction: 1.2 },
       display: { x: 0, y: 0, scaleX: 1.0, scaleY: 1.0 }
     }
@@ -24,7 +24,7 @@ const fallbackCatalog = {
       id: 'chassis-equilibrado',
       name: 'Equilibrado',
       type: 'chassis',
-      sprite: 'assets/tanks/chasiss/Chassis01.png',
+      sprite: 'assets/tanks/chasiss/chassis02.png',
       stats: { hp: 110, weight: 55, armor: 1, resistance: 12 },
       display: { x: 0, y: 0, scaleX: 1.0, scaleY: 1.0 }
     },
@@ -32,7 +32,7 @@ const fallbackCatalog = {
       id: 'chassis-leve',
       name: 'Leve',
       type: 'chassis',
-      sprite: 'assets/tanks/chasiss/Chassis02.png',
+      sprite: 'assets/tanks/chasiss/chassis01.png',
       stats: { hp: 90, weight: 40, armor: 0.8, resistance: 9 },
       display: { x: 0, y: 0, scaleX: 1.0, scaleY: 1.0 }
     },
@@ -40,7 +40,7 @@ const fallbackCatalog = {
       id: 'chassis-pesado',
       name: 'Pesado',
       type: 'chassis',
-      sprite: 'assets/tanks/chasiss/Chassis03.png',
+      sprite: 'assets/tanks/chasiss/chassis03.png',
       stats: { hp: 150, weight: 75, armor: 1.4, resistance: 18 },
       display: { x: 0, y: 0, scaleX: 1.0, scaleY: 1.0 }
     }
@@ -50,7 +50,7 @@ const fallbackCatalog = {
       id: 'cannon-parabolica',
       name: 'Parabólica',
       type: 'cannon',
-      sprite: 'assets/tanks/cannons/Cannon01.png',
+      sprite: 'assets/tanks/cannons/cannon01.png',
       stats: { cooldown: 420, damage: 18, projectileSpeed: 300, projectileType: 'laser', spread: 0.08 },
       display: { x: 0, y: 0, scaleX: 1.0, scaleY: 1.0 }
     },
@@ -58,7 +58,7 @@ const fallbackCatalog = {
       id: 'cannon-onda-de-choque',
       name: 'Onda de Choque',
       type: 'cannon',
-      sprite: 'assets/tanks/cannons/Cannon02.png',
+      sprite: 'assets/tanks/cannons/cannon02.png',
       stats: { cooldown: 260, damage: 14, projectileSpeed: 420, projectileType: 'shockwave', spread: 0.04 },
       display: { x: 0, y: 0, scaleX: 1.0, scaleY: 1.0 }
     },
@@ -66,9 +66,35 @@ const fallbackCatalog = {
       id: 'cannon-rapido',
       name: 'Canhão Rápido',
       type: 'cannon',
-      sprite: 'assets/tanks/cannons/Cannon03.png',
+      sprite: 'assets/tanks/cannons/cannon03.png',
       stats: { cooldown: 120, damage: 9, projectileSpeed: 500, projectileType: 'bullet', spread: 0.12 },
       display: { x: 0, y: 0, scaleX: 1.0, scaleY: 1.0 }
+    }
+  ],
+  turrets: [
+    {
+      id: 'turret-leve',
+      name: 'Leve',
+      type: 'turret',
+      sprite: 'assets/tanks/chasiss/turret01.png',
+      stats: { weight: 20 },
+      display: { x: 0, y: -15, scaleX: 0.5, scaleY: 0.5 }
+    },
+    {
+      id: 'turret-equilibrada',
+      name: 'Equilibrada',
+      type: 'turret',
+      sprite: 'assets/tanks/chasiss/turret02.png',
+      stats: { weight: 28 },
+      display: { x: 0, y: -10, scaleX: 0.45, scaleY: 0.45 }
+    },
+    {
+      id: 'turret-pesada',
+      name: 'Pesada',
+      type: 'turret',
+      sprite: 'assets/tanks/chasiss/turret03.png',
+      stats: { weight: 36 },
+      display: { x: 0, y: -12, scaleX: 0.5, scaleY: 0.5 }
     }
   ]
 };
@@ -79,11 +105,13 @@ const state = {
   selections: {
     1: {
       belt: 'belt-esteiras',
+      turret: 'turret-equilibrada',
       chassis: 'chassis-leve',
       cannon: 'cannon-parabolica'
     },
     2: {
       belt: 'belt-esteiras',
+      turret: 'turret-equilibrada',
       chassis: 'chassis-leve',
       cannon: 'cannon-parabolica'
     }
@@ -109,11 +137,13 @@ function findPart(catalog, type, id) {
 function computeTankStats(catalog, selection) {
   const belt = findPart(catalog, 'belt', selection.belt);
   const chassis = findPart(catalog, 'chassis', selection.chassis);
+  const turret = findPart(catalog, 'turret', selection.turret);
   const cannon = findPart(catalog, 'cannon', selection.cannon);
 
   const tank = {
     belt,
     chassis,
+    turret,
     cannon,
     speed: belt.stats.speed,
     drag: belt.stats.drag,
@@ -136,7 +166,7 @@ function buildFinishedTank(catalog, selection) {
   return {
     ...selection,
     ...stats,
-    id: `${selection.belt}__${selection.chassis}__${selection.cannon}`,
+    id: `${selection.belt}__${selection.turret}__${selection.chassis}__${selection.cannon}`,
     rotationSpeed: 2,
     muzzleOffset: 86,
     projectile: {
@@ -218,6 +248,7 @@ const previewCenter = { x: 0, y: 0 };
 const previewLayout = {
   belt: { width: 26, height: 108 },
   chassis: { width: 84, height: 136 },
+  turret: { width: 70, height: 70 },
   cannon: { width: 32, height: 88 }
 };
 
@@ -265,9 +296,17 @@ function renderPreview(player, stats) {
   const cannonDisplay = stats.cannon.display;
   positionPreviewLayer(cannon, 'cannon', cannonDisplay, cannonDisplay.x * 0.35);
 
+  const turret = document.createElement('img');
+  turret.className = 'preview-layer preview-turret';
+  turret.src = stats.turret.sprite;
+  turret.alt = stats.turret.name;
+  const turretDisplay = stats.turret.display;
+  positionPreviewLayer(turret, 'turret', turretDisplay, turretDisplay.x * 0.35);
+
   preview.appendChild(leftBelt);
   preview.appendChild(rightBelt);
   preview.appendChild(chassis);
+  preview.appendChild(turret);
   preview.appendChild(cannon);
 
   const label = document.createElement('div');
@@ -315,9 +354,10 @@ function render() {
   leftTitle.textContent = 'PEÇAS';
   left.appendChild(leftTitle);
 
-  renderPartGroup(left, 'ESTEIRAS', 'belt', catalog.belts, selection.belt);
+  renderPartGroup(left, 'CANNON', 'cannon', catalog.cannons, selection.cannon);
+  renderPartGroup(left, 'TURRET', 'turret', catalog.turrets, selection.turret);
   renderPartGroup(left, 'CHASSIS', 'chassis', catalog.chassis, selection.chassis);
-  renderPartGroup(left, 'CANHÕES', 'cannon', catalog.cannons, selection.cannon);
+  renderPartGroup(left, 'TRACKS', 'belt', catalog.belts, selection.belt);
 
   const right = document.createElement('aside');
   right.className = 'panel panel-preview';
@@ -340,7 +380,7 @@ function render() {
     downloadBtn.textContent = 'BAIXAR SPRITE';
     downloadBtn.addEventListener('click', async () => {
       const sel = state.selections[player];
-      const filename = `${sel.belt}__${sel.chassis}__${sel.cannon}.png`;
+      const filename = `${sel.belt}__${sel.turret}__${sel.chassis}__${sel.cannon}.png`;
       try {
         await capturePreviewToPNG(previewBlock.preview, filename);
         console.log('Downloaded', filename);

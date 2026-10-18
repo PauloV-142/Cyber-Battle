@@ -473,8 +473,14 @@ button {
     margin-left: 33.33%;
 }
 
-.preview-cannon {
+.preview-turret {
     z-index: 3;
+    scale: 1.5;
+    margin-left: 33.33%;
+}
+
+.preview-cannon {
+    z-index: 4;
     scale: 1.5;
     margin-left: 33.33%;
 }
