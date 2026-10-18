@@ -294,6 +294,27 @@ function createCompositeTank(scene, tankDefinition, x, y, angle = 0) {
     return container;
 }
 
+function createPresetTank(scene, textureKey, x, y, movementAngle = 0) {
+    const tank = scene.add.container(x, y);
+    tank.rotation = movementAngle;
+    tank.name = 'tank';
+
+    const sprite = scene.add.image(0, 0, textureKey)
+        .setOrigin(0.5)
+        .setAngle(90)
+        .setScale(0.462);
+    tank.add(sprite);
+    scene.physics.add.existing(tank);
+
+    if (tank.body) {
+        tank.body.setCollideWorldBounds(true);
+        tank.body.setSize(140, 70);
+        tank.body.setOffset(-70, -35);
+    }
+
+    return tank;
+}
+
 function showGameLoadingSplash() {
     const splash = document.getElementById('startup-splash');
     const image = splash?.querySelector('.startup-splash__image');
@@ -357,7 +378,7 @@ window.startGameWithSelections = function (selections) {
 
     window.__selectedTankBuild = selections || {
         1: { belt: 'belt-esteiras', turret: 'turret-equilibrada', chassis: 'chassis-equilibrado', cannon: 'cannon-parabolica' },
-        2: { belt: 'belt-propulsores', turret: 'turret-pesada', chassis: 'chassis-pesado', cannon: 'cannon-onda-de-choque' }
+        2: { belt: 'belt-propulsores', turret: 'turret-pesada', chassis: 'chassis-equilibrado', cannon: 'cannon-onda-de-choque' }
     };
 
     if (game) {
@@ -368,9 +389,26 @@ window.startGameWithSelections = function (selections) {
     game = new Phaser.Game(buildPhaserConfig());
 };
 
-function buildPresetSpriteKey(selection) {
+function getPartCode(part) {
+    const filename = part.sprite.split('/').pop() || '';
+    const code = filename.replace(/\D/g, '');
+    if (code.length !== 2) {
+        throw new Error(`Invalid part code in sprite path: ${part.sprite}`);
+    }
+    return code;
+}
+
+function buildPresetSpriteKey(catalog, selection) {
     if (!selection) return null;
-    return `${selection.belt}__${selection.turret}__${selection.chassis}__${selection.cannon}`;
+    const cannon = findCatalogPart(catalog, 'cannon', selection.cannon);
+    const turret = findCatalogPart(catalog, 'turret', selection.turret);
+    const chassis = findCatalogPart(catalog, 'chassis', selection.chassis);
+    const belt = findCatalogPart(catalog, 'belt', selection.belt);
+    if (!cannon || !turret || !chassis || !belt) {
+        console.warn('Unable to build preset sprite key', selection);
+        return null;
+    }
+    return `tank${[cannon, turret, chassis, belt].map(getPartCode).join('')}`;
 }
 
 function preload() {
@@ -407,23 +445,25 @@ function preload() {
         ['turret-pesada', 'assets/tanks/chasiss/turret03.png'],
         ['chassis-equilibrado', 'assets/tanks/chasiss/chassis02.png'],
         ['chassis-leve', 'assets/tanks/chasiss/chassis01.png'],
-        ['chassis-pesado', 'assets/tanks/chasiss/chassis03.png'],
         ['cannon-parabolica', 'assets/tanks/cannons/cannon01.png'],
         ['cannon-onda-de-choque', 'assets/tanks/cannons/cannon02.png'],
         ['cannon-rapido', 'assets/tanks/cannons/cannon03.png']
     ].forEach(([key, path]) => this.load.image(key, path));
 
-    // 2 belts x 3 chassis x 3 cannons = 18 generated tank presets
-    const beltIds = ['belt-esteiras', 'belt-propulsores'];
-    const chassisIds = ['chassis-equilibrado', 'chassis-leve', 'chassis-pesado'];
-    const cannonIds = ['cannon-parabolica', 'cannon-onda-de-choque', 'cannon-rapido'];
+    // 2 tracks x 3 chassis x 3 turrets x 3 cannons = 54 generated tank presets
+    const beltCodes = ['01', '02'];
+    const chassisCodes = ['01', '02'];
+    const turretCodes = ['01', '02', '03'];
+    const cannonCodes = ['01', '02', '03'];
 
-    beltIds.forEach((beltId) => {
-        chassisIds.forEach((chassisId) => {
-            cannonIds.forEach((cannonId) => {
-                const key = `${beltId}__${chassisId}__${cannonId}`;
-                const path = `assets/preset-sprites/${key}.png`;
-                this.load.image(key, path);
+    beltCodes.forEach((beltCode) => {
+        chassisCodes.forEach((chassisCode) => {
+            turretCodes.forEach((turretCode) => {
+                cannonCodes.forEach((cannonCode) => {
+                    const key = `tank${cannonCode}${turretCode}${chassisCode}${beltCode}`;
+                    const path = `assets/preset-sprites/version02/CyberAssets/${key}.png`;
+                    this.load.image(key, path);
+                });
             });
         });
     });
@@ -521,7 +561,7 @@ function create() {
 
     const selectionState = window.__selectedTankBuild || {
         1: { belt: 'belt-esteiras', turret: 'turret-equilibrada', chassis: 'chassis-equilibrado', cannon: 'cannon-parabolica' },
-        2: { belt: 'belt-propulsores', turret: 'turret-pesada', chassis: 'chassis-pesado', cannon: 'cannon-onda-de-choque' }
+        2: { belt: 'belt-propulsores', turret: 'turret-pesada', chassis: 'chassis-equilibrado', cannon: 'cannon-onda-de-choque' }
     };
 
     const map = this.make.tilemap({ key: 'techMap' });
@@ -545,28 +585,18 @@ function create() {
     });
 
     getTankCatalog().then((catalog) => {
-        const player1Build = buildTankSelection(catalog, selectionState[1]);
-        const player2Build = buildTankSelection(catalog, selectionState[2]);
-
-        const p1Key = buildPresetSpriteKey(selectionState[1]);
-        const p2Key = buildPresetSpriteKey(selectionState[2]);
+        const p1Key = buildPresetSpriteKey(catalog, selectionState[1]);
+        const p2Key = buildPresetSpriteKey(catalog, selectionState[2]);
 
         const player1Config = buildTankRuntimeConfig(catalog, selectionState[1]);
         const player2Config = buildTankRuntimeConfig(catalog, selectionState[2]);
 
-        if (this.textures.exists(p1Key)) {
-            this.player1 = this.physics.add.image(88, 367, p1Key);
-            this.player1.setScale(1);
-        } else {
-            this.player1 = createCompositeTank(this, player1Build, 88, 367, 0);
+        if (!p1Key || !p2Key || !this.textures.exists(p1Key) || !this.textures.exists(p2Key)) {
+            throw new Error('Selected tank preset sprite was not loaded');
         }
 
-        if (this.textures.exists(p2Key)) {
-            this.player2 = this.physics.add.image(1830, 782, p2Key).setAngle(180);
-            this.player2.setScale(1);
-        } else {
-            this.player2 = createCompositeTank(this, player2Build, 1830, 782, Math.PI);
-        }
+        this.player1 = createPresetTank(this, p1Key, 88, 367);
+        this.player2 = createPresetTank(this, p2Key, 1830, 782, Math.PI);
 
         this.player1.name = 'player1';
         this.player2.name = 'player2';
@@ -758,7 +788,7 @@ function shootProjectile(scene, player, projectileData, projectileGroup) {
 
 if (typeof window !== 'undefined') {
     window.__selectedTankBuild = window.__selectedTankBuild || {
-        1: { belt: 'belt-esteiras', chassis: 'chassis-equilibrado', cannon: 'cannon-parabolica' },
-        2: { belt: 'belt-propulsores', chassis: 'chassis-pesado', cannon: 'cannon-onda-de-choque' }
+        1: { belt: 'belt-esteiras', turret: 'turret-equilibrada', chassis: 'chassis-equilibrado', cannon: 'cannon-parabolica' },
+        2: { belt: 'belt-propulsores', turret: 'turret-pesada', chassis: 'chassis-equilibrado', cannon: 'cannon-onda-de-choque' }
     };
 }

@@ -75,24 +75,6 @@
         "scaleX": 0.5,
         "scaleY": 0.5
       }
-    },
-    {
-      "id": "chassis-pesado",
-      "name": "Pesado",
-      "type": "chassis",
-      "sprite": "assets/tanks/chasiss/chassis03.png",
-      "stats": {
-        "hp": 150,
-        "weight": 75,
-        "armor": 1.4,
-        "resistance": 18
-      },
-      "display": {
-        "x": -7,
-        "y": 20,
-        "scaleX": 0.43,
-        "scaleY": 0.43
-      }
     }
   ],
   "cannons": [

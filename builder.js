@@ -1,5 +1,4 @@
 const DOWNLOAD_BUTTON_ENABLED = false;
-
 const fallbackCatalog = {
   belts: [
     {
@@ -34,14 +33,6 @@ const fallbackCatalog = {
       type: 'chassis',
       sprite: 'assets/tanks/chasiss/chassis01.png',
       stats: { hp: 90, weight: 40, armor: 0.8, resistance: 9 },
-      display: { x: 0, y: 0, scaleX: 1.0, scaleY: 1.0 }
-    },
-    {
-      id: 'chassis-pesado',
-      name: 'Pesado',
-      type: 'chassis',
-      sprite: 'assets/tanks/chasiss/chassis03.png',
-      stats: { hp: 150, weight: 75, armor: 1.4, resistance: 18 },
       display: { x: 0, y: 0, scaleX: 1.0, scaleY: 1.0 }
     }
   ],
@@ -132,6 +123,29 @@ async function loadCatalog() {
 function findPart(catalog, type, id) {
   const list = catalog[type + 's'] || catalog[type];
   return list.find((item) => item.id === id);
+}
+
+function getPartCode(part) {
+  const filename = part.sprite.split('/').pop() || '';
+  const code = filename.replace(/\D/g, '');
+  if (code.length !== 2) {
+    throw new Error(`Invalid part code in sprite path: ${part.sprite}`);
+  }
+  return code;
+}
+
+function getPresetSpritePath(catalog, selection) {
+  const cannon = findPart(catalog, 'cannon', selection.cannon);
+  const turret = findPart(catalog, 'turret', selection.turret);
+  const chassis = findPart(catalog, 'chassis', selection.chassis);
+  const belt = findPart(catalog, 'belt', selection.belt);
+
+  if (!cannon || !turret || !chassis || !belt) {
+    throw new Error('Preset selection contains an unknown tank part');
+  }
+
+  const code = [cannon, turret, chassis, belt].map(getPartCode).join('');
+  return `assets/preset-sprites/version02/CyberAssets/tank${code}.png`;
 }
 
 function computeTankStats(catalog, selection) {
@@ -263,51 +277,15 @@ function positionPreviewLayer(layer, type, display, xOffset = 0, yScale = 0.35) 
   layer.style.transform = 'translate(-50%, -50%)';
 }
 
-function renderPreview(player, stats) {
+function renderPreview(player, stats, presetPath) {
   const preview = document.createElement('div');
   preview.className = 'tank-preview';
 
-  // The tank is symetrical, and the belt image is of a single belt, so we have to put twice belt images under the tank, to represent a real tank set of belts.
-  const leftBelt = document.createElement('img');
-  leftBelt.className = 'preview-layer preview-belt left';
-  leftBelt.src = stats.belt.sprite;
-  leftBelt.alt = stats.belt.name;
-  const beltDisplay = stats.belt.display;
-  const beltGap = beltDisplay.rightX / 2;
-  positionPreviewLayer(leftBelt, 'belt', beltDisplay, -beltGap);
-
-  const rightBelt = document.createElement('img');
-  rightBelt.className = 'preview-layer preview-belt right';
-  rightBelt.src = stats.belt.sprite;
-  rightBelt.alt = stats.belt.name;
-  positionPreviewLayer(rightBelt, 'belt', beltDisplay, beltGap);
-
-  const chassis = document.createElement('img');
-  chassis.className = 'preview-layer preview-chassis';
-  chassis.src = stats.chassis.sprite;
-  chassis.alt = stats.chassis.name;
-  const chassisDisplay = stats.chassis.display;
-  positionPreviewLayer(chassis, 'chassis', chassisDisplay, chassisDisplay.x * 0.35);
-
-  const cannon = document.createElement('img');
-  cannon.className = 'preview-layer preview-cannon';
-  cannon.src = stats.cannon.sprite;
-  cannon.alt = stats.cannon.name;
-  const cannonDisplay = stats.cannon.display;
-  positionPreviewLayer(cannon, 'cannon', cannonDisplay, cannonDisplay.x * 0.35);
-
-  const turret = document.createElement('img');
-  turret.className = 'preview-layer preview-turret';
-  turret.src = stats.turret.sprite;
-  turret.alt = stats.turret.name;
-  const turretDisplay = stats.turret.display;
-  positionPreviewLayer(turret, 'turret', turretDisplay, turretDisplay.x * 0.35);
-
-  preview.appendChild(leftBelt);
-  preview.appendChild(rightBelt);
-  preview.appendChild(chassis);
-  preview.appendChild(turret);
-  preview.appendChild(cannon);
+  const sprite = document.createElement('img');
+  sprite.className = 'preview-layer preview-preset';
+  sprite.src = presetPath;
+  sprite.alt = 'Selected tank preset';
+  preview.appendChild(sprite);
 
   const label = document.createElement('div');
   label.className = 'preview-title';
@@ -333,6 +311,13 @@ function render() {
   const player = state.currentPlayer;
   const selection = state.selections[player];
   const stats = computeTankStats(catalog, selection);
+  let presetPath;
+  try {
+    presetPath = getPresetSpritePath(catalog, selection);
+  } catch (error) {
+    console.error('Failed to resolve selected tank preset', error);
+    presetPath = '';
+  }
 
   builderScreen.innerHTML = '';
 
@@ -365,7 +350,7 @@ function render() {
   const previewCard = document.createElement('div');
   previewCard.className = 'preview-card';
 
-  const previewBlock = renderPreview(player, stats);
+  const previewBlock = renderPreview(player, stats, presetPath);
   previewCard.appendChild(previewBlock.label);
   previewCard.appendChild(previewBlock.preview);
   previewCard.appendChild(previewBlock.statsWrap);
