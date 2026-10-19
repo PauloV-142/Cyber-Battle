@@ -9,6 +9,11 @@ const defaultTankPositions = {
     player1: { x: 88, y: 367, rotation: 0 },
     player2: { x: 1830, y: 782, rotation: Math.PI }
 };
+const healingZoneTiles = [
+    { x: 53, y: 7, width: 3, height: 2 },
+    { x: 4, y: 27, width: 3, height: 2 }
+];
+const healingCooldown = 30000;
 
 function randomSoundKey(keys) {
     return keys[Math.floor(Math.random() * keys.length)];
@@ -557,12 +562,37 @@ function resetTank(tank, position) {
     tank.body.enable = true;
     tank.body.stop();
     tank.life = tank.maxLife;
+    tank.nextHealAt = 0;
 }
 
 function respawnTanks(scene) {
     resetTank(scene.player1, defaultTankPositions.player1);
     resetTank(scene.player2, defaultTankPositions.player2);
     playTankRebirth(scene);
+    updateScoreboardDisplay(scene);
+}
+
+function createHealingZones(scene, map) {
+    return healingZoneTiles.map((tileArea) => {
+        const zone = scene.add.zone(
+            (tileArea.x + tileArea.width / 2) * map.tileWidth,
+            (tileArea.y + tileArea.height / 2) * map.tileHeight,
+            tileArea.width * map.tileWidth,
+            tileArea.height * map.tileHeight
+        );
+        scene.physics.add.existing(zone, true);
+        return zone;
+    });
+}
+
+function healTank(scene, tank) {
+    const now = scene.time.now;
+    if (tank.life >= tank.maxLife || now < tank.nextHealAt) return;
+
+    const tankConfig = tank === scene.player1 ? scene.player1Config : scene.player2Config;
+    const healingAmount = tankConfig.projectile.damage;
+    tank.life = Math.min(tank.maxLife, tank.life + healingAmount);
+    tank.nextHealAt = now + healingCooldown;
     updateScoreboardDisplay(scene);
 }
 
@@ -634,6 +664,7 @@ function create() {
     buildingsLayer.setCollisionByExclusion([-1, 0]);
 
     this.physics.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+    const healingZones = createHealingZones(this, map);
     if (!window.startGameMusic) {
         startGameMusic(this);
     }
@@ -671,6 +702,8 @@ function create() {
         this.player2.maxLife = this.player2Config.life || 100;
         this.player1.life = this.player1.maxLife;
         this.player2.life = this.player2.maxLife;
+        this.player1.nextHealAt = 0;
+        this.player2.nextHealAt = 0;
         updateScoreboardDisplay(this);
 
         this.player1.muzzleOffset = this.player1Config.muzzleOffset;
@@ -681,6 +714,10 @@ function create() {
         this.physics.add.collider(this.player1, buildingsLayer, () => registerTankCollision(this, 'player1-building', this.player1.x));
         this.physics.add.collider(this.player2, buildingsLayer, () => registerTankCollision(this, 'player2-building', this.player2.x));
         this.physics.add.collider(this.player1, this.player2, () => registerTankCollision(this, 'player1-player2', (this.player1.x + this.player2.x) / 2));
+        healingZones.forEach((zone) => {
+            this.physics.add.overlap(this.player1, zone, () => healTank(this, this.player1));
+            this.physics.add.overlap(this.player2, zone, () => healTank(this, this.player2));
+        });
 
         this.player1Input = this.input.keyboard.addKeys({
             up: Phaser.Input.Keyboard.KeyCodes.W,
