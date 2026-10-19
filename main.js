@@ -11,7 +11,9 @@ function randomSoundKey(keys) {
 }
 
 function getSoundPan(scene, x) {
-    const worldWidth = scene.physics.world.bounds.width || scene.scale.width;
+    const worldWidth = (scene.matter && scene.matter.world && scene.matter.world.bounds)
+        ? scene.matter.world.bounds.width
+        : (scene.physics && scene.physics.world && scene.physics.world.bounds ? scene.physics.world.bounds.width : scene.scale.width);
     return Phaser.Math.Clamp((x / worldWidth) * 2 - 1, -1, 1);
 }
 
@@ -114,10 +116,32 @@ function stopProjectileSound(projectile) {
 }
 
 function deactivateProjectile(scene, projectile) {
-    if (!projectile || !projectile.active) return;
-    stopProjectileSound(projectile);
+    if (!projectile) return;
+
+    if (projectile.active !== false) {
+        stopProjectileSound(projectile);
+    }
+
     projectile.owner = null;
-    projectile.disableBody(true, true);
+    projectile.isProjectile = false;
+    projectile.active = false;
+    projectile.setVisible(false);
+    projectile.setVelocity(0, 0);
+    projectile.setPosition(-9999, -9999);
+
+    if (scene && Array.isArray(scene.player1Projectiles)) {
+        scene.player1Projectiles = scene.player1Projectiles.filter((item) => item !== projectile);
+    }
+    if (scene && Array.isArray(scene.player2Projectiles)) {
+        scene.player2Projectiles = scene.player2Projectiles.filter((item) => item !== projectile);
+    }
+
+    if (projectile.body && typeof projectile.body.destroy === 'function') {
+        projectile.body.destroy();
+    }
+    if (typeof projectile.destroy === 'function') {
+        projectile.destroy();
+    }
 }
 
 function playGameMusicTrack(scene, trackIndex = 0) {
@@ -160,8 +184,8 @@ function buildPhaserConfig() {
             update: update
         },
         physics: {
-            default: 'arcade',
-            arcade: {
+            default: 'matter',
+            matter: {
                 gravity: { y: 0 },
                 debug: true
             }
@@ -223,10 +247,10 @@ function buildTankRuntimeConfig(catalog, selection) {
     const cannon = findCatalogPart(catalog, 'cannon', baseSelection.cannon) || { stats: { cooldown: finishedTank.cooldown || 100, damage: finishedTank.damage || 10, projectileSpeed: finishedTank.projectileSpeed || 300 } };
 
     // defaults are being used here
-    const projectileSpeed = Number(finishedTank.projectileSpeed ?? cannon.stats.projectileSpeed ?? 300);
+    const projectileSpeed = Number(finishedTank.projectileSpeed ?? cannon.stats.projectileSpeed ?? 300) * 0.75;
     const damage = Number(finishedTank.damage ?? cannon.stats.damage ?? 10);
     const cooldown = Number(finishedTank.cooldown ?? cannon.stats.cooldown ?? 100);
-    const movementSpeed = Number(finishedTank.speed ?? belt.stats.speed ?? 80);
+    const movementSpeed = Number(finishedTank.speed ?? belt.stats.speed ?? 80) * 0.65;
     const drag = Number(finishedTank.drag ?? belt.stats.drag ?? 0.5);
     const rotationSpeed = Number(finishedTank.rotationSpeed ?? 2);
     const muzzleOffset = Number(finishedTank.muzzleOffset ?? 86);
@@ -249,6 +273,27 @@ function buildTankRuntimeConfig(catalog, selection) {
             cooldown
         }
     };
+}
+
+function configureMatterTankBody(entity, width, height, radius = 8) {
+    if (!entity || typeof entity.setBody !== 'function') return;
+
+    entity.setBody({
+        type: 'rectangle',
+        width,
+        height,
+        chamfer: { radius }
+    });
+    entity.setFrictionAir(0.05);
+    entity.setDensity(0.0012);
+    entity.setMass(1.2);
+
+    if (entity.body) {
+        entity.body.frictionAir = 0.05;
+        entity.body.density = 0.0012;
+        entity.body.mass = 1.2;
+        entity.body.inertia = Infinity;
+    }
 }
 
 function createCompositeTank(scene, tankDefinition, x, y, angle = 0) {
@@ -277,12 +322,14 @@ function createCompositeTank(scene, tankDefinition, x, y, angle = 0) {
         .setScale(cannonDisplay.scaleX || 1, cannonDisplay.scaleY || 1);
 
     container.add([leftBelt, rightBelt, chassisSprite, cannonSprite]);
-    scene.physics.add.existing(container);
-
+    scene.matter.add.existing(container);
     if (container.body) {
-        container.body.setCollideWorldBounds(true);
-        container.body.setSize(140, 70);
-        container.body.setOffset(-70, -35);
+        container.setBody({
+            type: 'rectangle',
+            width: 130,
+            height: 70,
+            chamfer: { radius: 8 }
+        });
     }
 
     return container;
@@ -523,7 +570,7 @@ function create() {
     buildingsLayer.setVisible(false);
     buildingsLayer.setCollisionByExclusion([-1, 0]);
 
-    this.physics.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+    this.matter.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels, 64, true, true, true, true);
     if (!window.startGameMusic) {
         startGameMusic(this);
     }
@@ -546,21 +593,25 @@ function create() {
         const player2Config = buildTankRuntimeConfig(catalog, selectionState[2]);
 
         if (this.textures.exists(p1Key)) {
-            this.player1 = this.physics.add.image(88, 367, p1Key);
+            this.player1 = this.matter.add.image(88, 367, p1Key);
             this.player1.setScale(1);
+            configureMatterTankBody(this.player1, 130, 70, 8);
         } else {
             this.player1 = createCompositeTank(this, player1Build, 88, 367, 0);
         }
 
         if (this.textures.exists(p2Key)) {
-            this.player2 = this.physics.add.image(1830, 782, p2Key).setAngle(180);
+            this.player2 = this.matter.add.image(1830, 782, p2Key).setAngle(180);
             this.player2.setScale(1);
+            configureMatterTankBody(this.player2, 130, 70, 8);
         } else {
             this.player2 = createCompositeTank(this, player2Build, 1830, 782, Math.PI);
         }
 
         this.player1.name = 'player1';
         this.player2.name = 'player2';
+        if (this.player1.body) this.player1.body.inertia = Infinity;
+        if (this.player2.body) this.player2.body.inertia = Infinity;
         createTankAudio(this, this.player1);
         createTankAudio(this, this.player2);
         playTankRebirth(this);
@@ -578,9 +629,30 @@ function create() {
 
         this.activeTankContacts = new Set();
         this.currentTankContacts = new Set();
-        this.physics.add.collider(this.player1, buildingsLayer, () => registerTankCollision(this, 'player1-building', this.player1.x));
-        this.physics.add.collider(this.player2, buildingsLayer, () => registerTankCollision(this, 'player2-building', this.player2.x));
-        this.physics.add.collider(this.player1, this.player2, () => registerTankCollision(this, 'player1-player2', (this.player1.x + this.player2.x) / 2));
+        this.matter.world.on('collisionstart', (event) => {
+            const pairs = event.pairs || [];
+
+            for (const pair of pairs) {
+                const bodyA = pair.bodyA && pair.bodyA.gameObject ? pair.bodyA.gameObject : null;
+                const bodyB = pair.bodyB && pair.bodyB.gameObject ? pair.bodyB.gameObject : null;
+
+                if (!bodyA || !bodyB) continue;
+
+                const isPlayer1Tank = bodyA === this.player1 || bodyB === this.player1;
+                const isPlayer2Tank = bodyA === this.player2 || bodyB === this.player2;
+
+                if (isPlayer1Tank && isPlayer2Tank) {
+                    registerTankCollision(this, 'player1-player2', (this.player1.x + this.player2.x) / 2);
+                }
+
+                const projectile = bodyA && bodyA.isProjectile ? bodyA : (bodyB && bodyB.isProjectile ? bodyB : null);
+                const targetTank = bodyA && (bodyA === this.player1 || bodyA === this.player2) ? bodyA : (bodyB && (bodyB === this.player1 || bodyB === this.player2) ? bodyB : null);
+
+                if (projectile && targetTank) {
+                    handleProjectileHit(this, projectile, targetTank);
+                }
+            }
+        });
 
         this.player1Input = this.input.keyboard.addKeys({
             up: Phaser.Input.Keyboard.KeyCodes.W,
@@ -597,29 +669,9 @@ function create() {
             right: Phaser.Input.Keyboard.KeyCodes.RIGHT,
             shoot: Phaser.Input.Keyboard.KeyCodes.L
         });
-
-        this.player1Projectiles = this.physics.add.group({
-            defaultKey: this.player1Config.projectile.image,
-            maxSize: 20
-        });
-
-        this.player2Projectiles = this.physics.add.group({
-            defaultKey: this.player2Config.projectile.image,
-            maxSize: 20
-        });
-
-        const onProjectileBuildingCollision = (projectile) => handleProjectileHit(this, projectile);
-        const onProjectileTankCollision = (projectile, tank) => handleProjectileHit(this, projectile, tank);
-        this.physics.add.collider(this.player1Projectiles, buildingsLayer, onProjectileBuildingCollision);
-        this.physics.add.collider(this.player2Projectiles, buildingsLayer, onProjectileBuildingCollision);
-        this.physics.add.collider(this.player1Projectiles, this.player2, onProjectileTankCollision);
-        this.physics.add.collider(this.player2Projectiles, this.player1, onProjectileTankCollision);
-        this.physics.world.on('worldbounds', (body) => {
-            const projectile = body.gameObject;
-            if (projectile && projectile.flyingSound) {
-                deactivateProjectile(this, projectile);
-            }
-        });
+        
+        this.player1Projectiles = [];
+        this.player2Projectiles = [];
 
         this.player1LastShot = 0;
         this.player2LastShot = 0;
@@ -636,13 +688,13 @@ function create() {
 }
 
 function applyVelocity(entity, velocityX, velocityY) {
-    if (entity.body && typeof entity.body.setVelocity === 'function') {
-        entity.body.setVelocity(velocityX, velocityY);
+    if (typeof entity.setVelocity === 'function') {
+        entity.setVelocity(velocityX, velocityY);
         return;
     }
 
-    if (typeof entity.setVelocity === 'function') {
-        entity.setVelocity(velocityX, velocityY);
+    if (entity.body && typeof entity.body.setVelocity === 'function') {
+        entity.body.setVelocity(velocityX, velocityY);
     }
 }
 
@@ -651,11 +703,21 @@ function update() {
         return;
     }
 
+    const dampenAngularVelocity = (entity) => {
+        if (!entity || !entity.body) return;
+        entity.body.angularVelocity *= 0.92;
+        if (Math.abs(entity.body.angularVelocity) < 0.01) {
+            entity.body.angularVelocity = 0;
+        }
+    };
+
     this.activeTankContacts = this.currentTankContacts || new Set();
     this.currentTankContacts = new Set();
 
-    this.player1.body.setVelocity(0, 0);
-    this.player2.body.setVelocity(0, 0);
+    this.player1.setVelocity(0, 0);
+    this.player2.setVelocity(0, 0);
+    dampenAngularVelocity(this.player1);
+    dampenAngularVelocity(this.player2);
 
     if (this.player1Input.left.isDown) this.player1.rotation -= this.player1Config.rotationSpeed;
     else if (this.player1Input.right.isDown) this.player1.rotation += this.player1Config.rotationSpeed;
@@ -683,9 +745,9 @@ function update() {
     }
     updateTankAudio(this, this.player2, player2Direction);
 
-    [this.player1Projectiles, this.player2Projectiles].forEach((projectileGroup) => {
-        projectileGroup.children.each((projectile) => {
-            if (projectile.active) {
+    [this.player1Projectiles, this.player2Projectiles].forEach((projectiles) => {
+        (projectiles || []).forEach((projectile) => {
+            if (projectile && projectile.active) {
                 setSoundPan(this, projectile.flyingSound, projectile.x);
             }
         });
@@ -693,13 +755,13 @@ function update() {
 
     const player1cooldownFinished = this.time.now > this.player1LastShot + this.player1Config.canon.cooldown;
     if (Phaser.Input.Keyboard.JustDown(this.player1Input.shoot) && player1cooldownFinished) {
-        shootProjectile(this, this.player1, this.player1Config.projectile, this.player1Projectiles);
+        shootProjectile(this, this.player1, this.player1Config.projectile);
         this.player1LastShot = this.time.now;
     }
 
     const player2cooldownFinished = this.time.now > this.player2LastShot + this.player2Config.canon.cooldown;
     if (Phaser.Input.Keyboard.JustDown(this.player2Input.shoot) && player2cooldownFinished) {
-        shootProjectile(this, this.player2, this.player2Config.projectile, this.player2Projectiles);
+        shootProjectile(this, this.player2, this.player2Config.projectile);
         this.player2LastShot = this.time.now;
     }
 }
@@ -719,25 +781,43 @@ function toggleGamePause() {
 
 document.getElementById('pause-game')?.addEventListener('click', toggleGamePause);
 
-function shootProjectile(scene, player, projectileData, projectileGroup) {
+function shootProjectile(scene, player, projectileData) {
     const spawnX = player.x + Math.cos(player.rotation) * player.muzzleOffset;
     const spawnY = player.y + Math.sin(player.rotation) * player.muzzleOffset;
-    const projectile = projectileGroup.get(spawnX, spawnY);
+    const projectilePool = player === scene.player1 ? scene.player1Projectiles : scene.player2Projectiles;
+    const projectile = scene.matter.add.image(spawnX, spawnY, projectileData.image);
 
     if (!projectile) return;
 
     projectile.setActive(true);
     projectile.setVisible(true);
-    projectile.body.enable = true;
-    projectile.body.reset(spawnX, spawnY);
-    projectile.setRotation(player.rotation);
-
-    scene.physics.velocityFromRotation(player.rotation, projectileData.speed, projectile.body.velocity);
-    projectile.setDepth(10);
-    projectile.body.setAllowGravity(false);
-    projectile.body.setCollideWorldBounds(true);
-    projectile.body.onWorldBounds = true;
+    projectile.isProjectile = true;
+    projectile.active = true;
     projectile.owner = player;
+    projectile.setPosition(spawnX, spawnY);
+    projectile.setRotation(player.rotation);
+    projectile.setBody({
+        type: 'rectangle',
+        width: 12,
+        height: 8,
+        chamfer: { radius: 3 }
+    });
+    projectile.setIgnoreGravity(true);
+    projectile.setFrictionAir(0.01);
+    if (projectile.body) {
+        projectile.body.frictionAir = 0.01;
+    }
+    projectile.setDepth(10);
+
+    const velocity = projectileData.speed;
+    const vx = Math.cos(player.rotation) * velocity;
+    const vy = Math.sin(player.rotation) * velocity;
+    projectile.setVelocity(vx, vy);
+
+    if (Array.isArray(projectilePool)) {
+        projectilePool.push(projectile);
+    }
+
     projectile.flyingSound = scene.sound.add('bulletFlyingStandard', { loop: true, volume: 0.3 });
     projectile.flyingSound.play();
     setSoundPan(scene, projectile.flyingSound, projectile.x);
