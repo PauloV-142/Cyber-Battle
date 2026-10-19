@@ -744,6 +744,32 @@ button {
     line-height: 1;
 }
 
+.scoreboard__controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.scoreboard__home {
+    display: grid;
+    width: clamp(38px, 4.9vw, 53px);
+    height: clamp(32px, 5vh, 48px);
+    place-items: center;
+    border: 0;
+    color: #fff;
+    background: #3a7bff;
+    cursor: pointer;
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(1.25rem, 2vw, 1.7rem);
+    line-height: 1;
+    text-decoration: none;
+}
+
+.scoreboard__home:hover,
+.scoreboard__home:focus-visible {
+    background: #5b91ff;
+}
+
 .scoreboard__pause.is-paused {
     background: #ff394b;
 }
@@ -755,7 +781,7 @@ button {
         padding: 8px;
     }
 
-    .scoreboard__pause {
+    .scoreboard__controls {
         grid-column: 1 / -1;
         grid-row: 2;
     }
