@@ -5,6 +5,10 @@ const bulletHitSoundKeys = ['bulletHit', 'bulletHit2', 'bulletHit3'];
 const tankCollisionSoundKeys = ['tankCollision1', 'tankCollision2'];
 const tankGunSoundKeys = ['tankGun1', 'tankGun2', 'tankGun3'];
 const gameMusicKeys = ['gameMusic1', 'gameMusic2', 'gameMusic3'];
+const defaultTankPositions = {
+    player1: { x: 88, y: 367, rotation: 0 },
+    player2: { x: 1830, y: 782, rotation: Math.PI }
+};
 
 function randomSoundKey(keys) {
     return keys[Math.floor(Math.random() * keys.length)];
@@ -113,11 +117,21 @@ function stopProjectileSound(projectile) {
     }
 }
 
+function getCollisionGameObject(object) {
+    return object?.gameObject || object;
+}
+
 function deactivateProjectile(scene, projectile) {
+    projectile = getCollisionGameObject(projectile);
     if (!projectile || !projectile.active) return;
     stopProjectileSound(projectile);
     projectile.owner = null;
-    projectile.disableBody(true, true);
+    if (projectile.body) {
+        projectile.body.stop();
+        projectile.body.enable = false;
+    }
+    projectile.setActive(false);
+    projectile.setVisible(false);
 }
 
 function playGameMusicTrack(scene, trackIndex = 0) {
@@ -535,16 +549,62 @@ function updateScoreboardDisplay(scene) {
     if (scene.player2) updateHealthDisplay('two', scene.player2);
 }
 
+function resetTank(tank, position) {
+    tank.setPosition(position.x, position.y);
+    tank.setRotation(position.rotation);
+    ensureTankVisible(tank);
+    tank.body.reset(position.x, position.y);
+    tank.body.enable = true;
+    tank.body.stop();
+    tank.life = tank.maxLife;
+}
+
+function respawnTanks(scene) {
+    resetTank(scene.player1, defaultTankPositions.player1);
+    resetTank(scene.player2, defaultTankPositions.player2);
+    playTankRebirth(scene);
+    updateScoreboardDisplay(scene);
+}
+
+function getTankFromCollision(scene, target) {
+    const gameObject = getCollisionGameObject(target);
+    if (gameObject === scene.player1 || gameObject === scene.player2) {
+        return gameObject;
+    }
+    return null;
+}
+
+function ensureTankVisible(tank) {
+    tank.setVisible(true);
+    tank.setAlpha(1);
+    tank.each((child) => {
+        child.setVisible(true);
+        child.setAlpha(1);
+    });
+}
+
 function handleProjectileHit(scene, projectile, target) {
-    if (!projectile || !projectile.active || (target && projectile.owner === target)) return;
+    projectile = getCollisionGameObject(projectile);
+    const tank = getTankFromCollision(scene, target);
+    if (!projectile || !projectile.active || (tank && projectile.owner === tank)) return;
     playRandomSound(scene, bulletHitSoundKeys, projectile.x, { volume: 0.55 });
-    if (target && projectile.owner) {
+    if (tank && projectile.owner) {
         updateScoreboard(scene, projectile.owner);
         const ownerConfig = projectile.owner === scene.player1 ? scene.player1Config : scene.player2Config;
-        target.life = Math.max(0, target.life - ownerConfig.projectile.damage);
+        tank.life = Math.max(0, tank.life - ownerConfig.projectile.damage);
+        ensureTankVisible(tank);
         updateScoreboardDisplay(scene);
+        if (tank.life <= 0) {
+            respawnTanks(scene);
+        }
     }
     deactivateProjectile(scene, projectile);
+}
+
+function getProjectileFromCollision(first, second) {
+    return [first, second]
+        .map(getCollisionGameObject)
+        .find((gameObject) => gameObject?.active && gameObject.owner);
 }
 
 function centerBattleMap(scene, map) {
@@ -595,8 +655,8 @@ function create() {
             throw new Error('Selected tank preset sprite was not loaded');
         }
 
-        this.player1 = createPresetTank(this, p1Key, 88, 367);
-        this.player2 = createPresetTank(this, p2Key, 1830, 782, Math.PI);
+        this.player1 = createPresetTank(this, p1Key, defaultTankPositions.player1.x, defaultTankPositions.player1.y, defaultTankPositions.player1.rotation);
+        this.player2 = createPresetTank(this, p2Key, defaultTankPositions.player2.x, defaultTankPositions.player2.y, defaultTankPositions.player2.rotation);
 
         this.player1.name = 'player1';
         this.player2.name = 'player2';
@@ -647,12 +707,22 @@ function create() {
             maxSize: 20
         });
 
-        const onProjectileBuildingCollision = (projectile) => handleProjectileHit(this, projectile);
-        const onProjectileTankCollision = (projectile, tank) => handleProjectileHit(this, projectile, tank);
+        const onProjectileBuildingCollision = (first, second) => {
+            const projectile = getProjectileFromCollision(first, second);
+            handleProjectileHit(this, projectile);
+        };
+        const onPlayer1ProjectileTankCollision = (first, second) => {
+            const projectile = getProjectileFromCollision(first, second);
+            handleProjectileHit(this, projectile, this.player2);
+        };
+        const onPlayer2ProjectileTankCollision = (first, second) => {
+            const projectile = getProjectileFromCollision(first, second);
+            handleProjectileHit(this, projectile, this.player1);
+        };
         this.physics.add.collider(this.player1Projectiles, buildingsLayer, onProjectileBuildingCollision);
         this.physics.add.collider(this.player2Projectiles, buildingsLayer, onProjectileBuildingCollision);
-        this.physics.add.collider(this.player1Projectiles, this.player2, onProjectileTankCollision);
-        this.physics.add.collider(this.player2Projectiles, this.player1, onProjectileTankCollision);
+        this.physics.add.collider(this.player1Projectiles, this.player2, onPlayer1ProjectileTankCollision);
+        this.physics.add.collider(this.player2Projectiles, this.player1, onPlayer2ProjectileTankCollision);
         this.physics.world.on('worldbounds', (body) => {
             const projectile = body.gameObject;
             if (projectile && projectile.flyingSound) {
