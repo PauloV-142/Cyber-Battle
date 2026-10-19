@@ -522,7 +522,7 @@ function registerTankCollision(scene, contactKey, x) {
     }
 }
 
-function updateScoreboard(scene, player, points = 100) {
+function updateScoreboard(scene, player, points = 1) {
     const playerNumber = player === scene.player1 ? 'one' : 'two';
     scene.scoreboard[playerNumber].hits += 1;
     scene.scoreboard[playerNumber].score += points;
@@ -589,13 +589,14 @@ function handleProjectileHit(scene, projectile, target) {
     if (!projectile || !projectile.active || (tank && projectile.owner === tank)) return;
     playRandomSound(scene, bulletHitSoundKeys, projectile.x, { volume: 0.55 });
     if (tank && projectile.owner) {
-        updateScoreboard(scene, projectile.owner);
         const ownerConfig = projectile.owner === scene.player1 ? scene.player1Config : scene.player2Config;
         tank.life = Math.max(0, tank.life - ownerConfig.projectile.damage);
         ensureTankVisible(tank);
-        updateScoreboardDisplay(scene);
         if (tank.life <= 0) {
+            updateScoreboard(scene, projectile.owner);
             respawnTanks(scene);
+        } else {
+            updateScoreboardDisplay(scene);
         }
     }
     deactivateProjectile(scene, projectile);
