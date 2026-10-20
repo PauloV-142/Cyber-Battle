@@ -30,6 +30,30 @@
     </main>
 
     <div id="builder-screen" hidden style="display: none;"></div>
+    <section id="tutorial-screen" class="tutorial-screen" hidden aria-label="Tutorial do jogo">
+        <div class="tutorial-card tutorial-card--player-one">
+            <h2>Jogador 1</h2>
+            <p>Para se movimentar, use:</p>
+            <div class="key-grid key-grid--wasd"><span>W</span><span>A</span><span>S</span><span>D</span></div>
+            <small>TECLAS WASD</small>
+            <p>Para disparar, use:</p>
+            <div class="key-wide">ESPAÇO</div>
+            <small>BARRA DE ESPAÇO</small>
+        </div>
+        <div class="tutorial-center">
+            <div class="tutorial-logo">CYBER<br>BATTLE</div>
+            <button id="tutorial-start" class="tutorial-start" type="button">OK</button>
+        </div>
+        <div class="tutorial-card tutorial-card--player-two">
+            <h2>Jogador 2</h2>
+            <p>Para se movimentar, use:</p>
+            <div class="key-grid key-grid--arrows"><span>↑</span><span>←</span><span>↓</span><span>→</span></div>
+            <small>SETAS DO TECLADO</small>
+            <p>Para disparar, use:</p>
+            <div class="key-single">L</div>
+            <small>TECLA “L”</small>
+        </div>
+    </section>
     <div id="game-screen" hidden>
         <section class="scoreboard" aria-label="Placar da batalha">
             <div class="scoreboard__player scoreboard__player--one">
@@ -48,6 +72,7 @@
             </div>
         </section>
         <div id="game-canvas" aria-label="Mapa da batalha"></div>
+        <section id="match-result" class="match-result" hidden aria-label="Resultado da partida"></section>
     </div>
 
     <script src="builder.js"></script>

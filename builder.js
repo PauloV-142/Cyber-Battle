@@ -319,6 +319,11 @@ function render() {
     presetPath = '';
   }
 
+  window.resetTankBuilder = function () {
+    state.currentPlayer = 1;
+    render();
+  };
+
   builderScreen.innerHTML = '';
 
   const frame = document.createElement('div');
@@ -387,16 +392,16 @@ function render() {
     }
 
     console.log('Build finalizado', state.selections);
-    if (window.startGameWithSelections) {
+    if (window.showTankTutorial) {
       const tankCatalog = window.__tankCatalog || fallbackCatalog;
-      window.startGameWithSelections({
+      window.showTankTutorial({
         1: { ...state.selections[1], tank: buildFinishedTank(tankCatalog, state.selections[1]) },
         2: { ...state.selections[2], tank: buildFinishedTank(tankCatalog, state.selections[2]) }
       });
       return;
     }
 
-    console.warn('startGameWithSelections is not defined. main.js is probably not loaded.');
+    console.warn('showTankTutorial is not defined. main.js is probably not loaded.');
   });
 
   right.appendChild(previewCard);

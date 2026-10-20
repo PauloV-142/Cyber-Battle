@@ -163,6 +163,26 @@ function startGameMusic(scene) {
     playGameMusicTrack(scene);
 }
 
+function showTutorial(selections) {
+    const tutorial = document.getElementById('tutorial-screen');
+    const builderScreen = document.getElementById('builder-screen');
+    const homeScreen = document.getElementById('home-screen');
+    if (!tutorial) return;
+
+    window.__pendingTankBuild = selections;
+    if (builderScreen) builderScreen.style.display = 'none';
+    if (homeScreen) homeScreen.style.display = 'none';
+    tutorial.hidden = false;
+}
+
+function startTutorialGame() {
+    const tutorial = document.getElementById('tutorial-screen');
+    if (tutorial) tutorial.hidden = true;
+    window.startGameWithSelections(window.__pendingTankBuild);
+}
+
+window.showTankTutorial = showTutorial;
+
 function buildPhaserConfig() {
     return {
         type: Phaser.Auto,
@@ -408,6 +428,8 @@ window.startGameWithSelections = function (selections) {
     game = new Phaser.Game(buildPhaserConfig());
 };
 
+document.getElementById('tutorial-start')?.addEventListener('click', startTutorialGame);
+
 function getPartCode(part) {
     const filename = part.sprite.split('/').pop() || '';
     const code = filename.replace(/\D/g, '');
@@ -554,6 +576,60 @@ function updateScoreboardDisplay(scene) {
     if (scene.player2) updateHealthDisplay('two', scene.player2);
 }
 
+function showMatchResult(scene, winner) {
+    if (scene.matchEnded) return;
+    scene.matchEnded = true;
+    const result = document.getElementById('match-result');
+    if (!result) return;
+
+    const winnerNumber = winner === scene.player1 ? 1 : 2;
+    const winnerScore = scene.scoreboard[winnerNumber === 1 ? 'one' : 'two'].score;
+    result.innerHTML = `
+        <h2>QUAL JOGADOR</h2>
+        <div class="match-result__winner">O JOGADOR ${winnerNumber}</div>
+        <div class="match-result__victory">VENCEU</div>
+        <div class="match-result__score">${winnerScore} x ${scene.scoreboard[winnerNumber === 1 ? 'two' : 'one'].score}</div>
+        <div class="match-result__actions">
+            <div>
+                <button class="match-result__menu" type="button">IR AO MENU</button>
+            </div>
+            <div>
+                <button class="match-result__rematch" type="button">JOGAR<br>DE NOVO</button>
+            </div>
+            <div>
+                <button class="match-result__builder" type="button">MONTAR<br>OUTRO TANQUE</button>
+            </div>
+        </div>
+    `;
+    result.hidden = false;
+    result.querySelector('.match-result__menu').addEventListener('click', () => {
+        window.location.href = 'index.html';
+    });
+    result.querySelector('.match-result__rematch').addEventListener('click', () => {
+        result.hidden = true;
+        window.startGameWithSelections(window.__selectedTankBuild);
+    });
+    result.querySelector('.match-result__builder').addEventListener('click', () => {
+        result.hidden = true;
+        const gameScreen = document.getElementById('game-screen');
+        const builderScreen = document.getElementById('builder-screen');
+        if (gameScreen) {
+            gameScreen.hidden = true;
+            gameScreen.style.display = 'none';
+        }
+        if (game) {
+            game.destroy(true);
+            game = null;
+        }
+        if (window.resetTankBuilder) window.resetTankBuilder();
+        if (builderScreen) {
+            builderScreen.hidden = false;
+            builderScreen.style.display = 'flex';
+        }
+    });
+    scene.scene.pause();
+}
+
 function resetTank(tank, position) {
     tank.setPosition(position.x, position.y);
     tank.setRotation(position.rotation);
@@ -624,7 +700,11 @@ function handleProjectileHit(scene, projectile, target) {
         ensureTankVisible(tank);
         if (tank.life <= 0) {
             updateScoreboard(scene, projectile.owner);
-            respawnTanks(scene);
+            if (scene.scoreboard.one.score >= 3 || scene.scoreboard.two.score >= 3) {
+                showMatchResult(scene, projectile.owner);
+            } else {
+                respawnTanks(scene);
+            }
         } else {
             updateScoreboardDisplay(scene);
         }
@@ -719,7 +799,7 @@ function create() {
             this.physics.add.overlap(this.player2, zone, () => healTank(this, this.player2));
         });
 
-        this.player1Input = this.input.keyboard.addKeys({
+        this.player1Input = createTankInput(this.input.keyboard, {
             up: Phaser.Input.Keyboard.KeyCodes.W,
             down: Phaser.Input.Keyboard.KeyCodes.S,
             left: Phaser.Input.Keyboard.KeyCodes.A,
@@ -727,7 +807,7 @@ function create() {
             shoot: Phaser.Input.Keyboard.KeyCodes.SPACE
         });
 
-        this.player2Input = this.input.keyboard.addKeys({
+        this.player2Input = createTankInput(this.input.keyboard, {
             up: Phaser.Input.Keyboard.KeyCodes.UP,
             down: Phaser.Input.Keyboard.KeyCodes.DOWN,
             left: Phaser.Input.Keyboard.KeyCodes.LEFT,
@@ -793,6 +873,28 @@ function applyVelocity(entity, velocityX, velocityY) {
     }
 }
 
+function createTankInput(keyboard, bindings) {
+    return Object.fromEntries(
+        Object.entries(bindings).map(([name, keyCode]) => [name, keyboard.addKey(keyCode, false)])
+    );
+}
+
+function updateTankMovement(tank, config, input) {
+    if (input.left.isDown) tank.rotation -= config.rotationSpeed;
+    if (input.right.isDown) tank.rotation += config.rotationSpeed;
+
+    const direction = input.up.isDown ? 1 : (input.down.isDown ? -1 : 0);
+    if (direction !== 0) {
+        applyVelocity(
+            tank,
+            Math.cos(tank.rotation) * config.movementSpeed * direction,
+            Math.sin(tank.rotation) * config.movementSpeed * direction
+        );
+    }
+
+    return direction;
+}
+
 function update() {
     if (!this.player1 || !this.player2 || !this.player1Input || !this.player2Input) {
         return;
@@ -804,30 +906,10 @@ function update() {
     this.player1.body.setVelocity(0, 0);
     this.player2.body.setVelocity(0, 0);
 
-    if (this.player1Input.left.isDown) this.player1.rotation -= this.player1Config.rotationSpeed;
-    else if (this.player1Input.right.isDown) this.player1.rotation += this.player1Config.rotationSpeed;
-
-    const player1Direction = this.player1Input.up.isDown ? 1 : (this.player1Input.down.isDown ? -1 : 0);
-    if (player1Direction !== 0) {
-        applyVelocity(
-            this.player1,
-            Math.cos(this.player1.rotation) * this.player1Config.movementSpeed * player1Direction,
-            Math.sin(this.player1.rotation) * this.player1Config.movementSpeed * player1Direction
-        );
-    }
+    const player1Direction = updateTankMovement(this.player1, this.player1Config, this.player1Input);
     updateTankAudio(this, this.player1, player1Direction);
 
-    if (this.player2Input.left.isDown) this.player2.rotation -= this.player2Config.rotationSpeed;
-    else if (this.player2Input.right.isDown) this.player2.rotation += this.player2Config.rotationSpeed;
-
-    const player2Direction = this.player2Input.up.isDown ? 1 : (this.player2Input.down.isDown ? -1 : 0);
-    if (player2Direction !== 0) {
-        applyVelocity(
-            this.player2,
-            Math.cos(this.player2.rotation) * this.player2Config.movementSpeed * player2Direction,
-            Math.sin(this.player2.rotation) * this.player2Config.movementSpeed * player2Direction
-        );
-    }
+    const player2Direction = updateTankMovement(this.player2, this.player2Config, this.player2Input);
     updateTankAudio(this, this.player2, player2Direction);
 
     [this.player1Projectiles, this.player2Projectiles].forEach((projectileGroup) => {
