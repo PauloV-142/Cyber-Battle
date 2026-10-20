@@ -46,10 +46,10 @@ function playRandomSound(scene, keys, x, config = {}) {
 
 function createTankAudio(scene, tank) {
     tank.audio = {
-        stopped: scene.sound.add('tankStopped', { loop: true, volume: 0.35 }),
-        started: scene.sound.add('tankStartedMovement', { volume: 0.45 }),
-        moving: scene.sound.add('tankMoving', { loop: true, volume: 0.35 }),
-        stopping: scene.sound.add('tankStoppingMovement', { volume: 0.45 })
+        stopped: scene.sound.add('tankStopped', { loop: true, volume: 0.45 }),
+        started: scene.sound.add('tankStartedMovement', { volume: 0.55 }),
+        moving: scene.sound.add('tankMoving', { loop: true, volume: 0.45 }),
+        stopping: scene.sound.add('tankStoppingMovement', { volume: 0.55 })
     };
     tank.movementState = 'stopped';
     tank.movementDirection = 0;
@@ -107,8 +107,8 @@ function updateTankAudio(scene, tank, direction) {
 }
 
 function playTankRebirth(scene) {
-    const left = scene.sound.add('tankRebirth', { volume: 0.45 });
-    const right = scene.sound.add('tankRebirth', { volume: 0.45 });
+    const left = scene.sound.add('tankRebirth', { volume: 0.55 });
+    const right = scene.sound.add('tankRebirth', { volume: 0.55 });
     left.once('complete', left.destroy, left);
     right.once('complete', right.destroy, right);
     left.play();
@@ -118,11 +118,11 @@ function playTankRebirth(scene) {
 }
 
 function playTankDeactivated(scene, tank) {
-    playRandomSound(scene, ['tankDeactivating'], tank.x, { volume: 0.55 });
+    playRandomSound(scene, ['tankDeactivating'], tank.x, { volume: 0.65 });
 }
 
 function playTankScore(scene, tank) {
-    playRandomSound(scene, ['tankScore'], tank.x, { volume: 0.45 });
+    playRandomSound(scene, ['tankScore'], tank.x, { volume: 0.55 });
 }
 
 function stopProjectileSound(projectile) {
@@ -154,7 +154,7 @@ function deactivateProjectile(scene, projectile) {
 function playGameMusicTrack(scene, trackIndex = 0) {
     if (!scene.sys || !scene.sys.isActive()) return;
 
-    const music = scene.sound.add(gameMusicKeys[trackIndex], { volume: 0.21 });
+    const music = scene.sound.add(gameMusicKeys[trackIndex], { volume: 0.24 });
     scene.gameMusic = music;
     music.once('complete', () => {
         music.destroy();
@@ -576,7 +576,7 @@ function preload() {
 function registerTankCollision(scene, contactKey, x) {
     scene.currentTankContacts.add(contactKey);
     if (!scene.activeTankContacts.has(contactKey)) {
-        playRandomSound(scene, tankCollisionSoundKeys, x, { volume: 0.5 });
+        playRandomSound(scene, tankCollisionSoundKeys, x, { volume: 0.6 });
     }
 }
 
@@ -727,7 +727,7 @@ function handleProjectileHit(scene, projectile, target) {
     projectile = getCollisionGameObject(projectile);
     const tank = getTankFromCollision(scene, target);
     if (!projectile || !projectile.active || (tank && projectile.owner === tank)) return;
-    playRandomSound(scene, bulletHitSoundKeys, projectile.x, { volume: 0.55 });
+    playRandomSound(scene, bulletHitSoundKeys, projectile.x, { volume: 0.65 });
     if (tank && projectile.owner) {
         const ownerConfig = projectile.owner === scene.player1 ? scene.player1Config : scene.player2Config;
         tank.life = Math.max(0, tank.life - ownerConfig.projectile.damage);
@@ -752,16 +752,6 @@ function getProjectileFromCollision(first, second) {
     return [first, second]
         .map(getCollisionGameObject)
         .find((gameObject) => gameObject?.active && gameObject.owner);
-}
-
-function handleProjectileCollision(scene, first, second) {
-    const firstProjectile = getCollisionGameObject(first);
-    const secondProjectile = getCollisionGameObject(second);
-    if (!firstProjectile?.active || !secondProjectile?.active) return;
-
-    playRandomSound(scene, bulletHitSoundKeys, (firstProjectile.x + secondProjectile.x) / 2, { volume: 0.55 });
-    deactivateProjectile(scene, firstProjectile);
-    deactivateProjectile(scene, secondProjectile);
 }
 
 function centerBattleMap(scene, map) {
@@ -887,9 +877,6 @@ function create() {
         this.physics.add.collider(this.player2Projectiles, buildingsLayer, onProjectileBuildingCollision);
         this.physics.add.collider(this.player1Projectiles, this.player2, onPlayer1ProjectileTankCollision);
         this.physics.add.collider(this.player2Projectiles, this.player1, onPlayer2ProjectileTankCollision);
-        this.physics.add.collider(this.player1Projectiles, this.player2Projectiles, (first, second) => {
-            handleProjectileCollision(this, first, second);
-        });
         this.physics.world.on('worldbounds', (body) => {
             const projectile = body.gameObject;
             if (projectile && projectile.flyingSound) {
@@ -1024,10 +1011,10 @@ function shootProjectile(scene, player, projectileData, projectileGroup) {
     projectile.body.setCollideWorldBounds(true);
     projectile.body.onWorldBounds = true;
     projectile.owner = player;
-    projectile.flyingSound = scene.sound.add('bulletFlyingStandard', { loop: true, volume: 0.3 });
+    projectile.flyingSound = scene.sound.add('bulletFlyingStandard', { loop: true, volume: 0.4 });
     projectile.flyingSound.play();
     setSoundPan(scene, projectile.flyingSound, projectile.x);
-    playRandomSound(scene, tankGunSoundKeys, player.x, { volume: 0.55 });
+    playRandomSound(scene, tankGunSoundKeys, player.x, { volume: 0.455 });
     projectile.lifetimeTimer = scene.time.delayedCall(projectileData.lifetime, () => {
         deactivateProjectile(scene, projectile);
     });

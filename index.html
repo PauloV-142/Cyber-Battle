@@ -97,7 +97,7 @@
         function playHomeMusicTrack() {
             homeMusic.src = homeMusicTracks[homeMusicIndex];
             homeMusic.currentTime = 0;
-            homeMusic.volume = 0.21;
+            homeMusic.volume = 0.25;
             return homeMusic.play().catch(() => false);
         }
 
@@ -130,7 +130,7 @@
             ];
             gameMusic.src = gameMusicTracks[gameMusicIndex];
             gameMusic.currentTime = 0;
-            gameMusic.volume = 0.11;
+            gameMusic.volume = 0.24;
             gameMusic.play().catch(() => {});
         }
 
