@@ -516,9 +516,10 @@ button {
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 10px 0 12px;
+    margin: 7em 0 7em;
     border-radius: 14px;
     background: rgba(1, 13, 23, 0.18);
+    transform: scale(2);
 }
 
 .preview-layer {
@@ -570,7 +571,7 @@ button {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    margin-top: 8px;
+    margin-top: 5dvh;
 }
 
 .stat-row {
