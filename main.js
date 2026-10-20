@@ -724,7 +724,6 @@ function ensureTankVisible(tank) {
 }
 
 function handleProjectileHit(scene, projectile, target) {
-    projectile = getCollisionGameObject(projectile);
     const tank = getTankFromCollision(scene, target);
     if (!projectile || !projectile.active || (tank && projectile.owner === tank)) return;
     playRandomSound(scene, bulletHitSoundKeys, projectile.x, { volume: 0.65 });
