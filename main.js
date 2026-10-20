@@ -347,11 +347,28 @@ function createPresetTank(scene, textureKey, x, y, movementAngle = 0) {
 
     if (tank.body) {
         tank.body.setCollideWorldBounds(true);
-        tank.body.setSize(140, 70);
-        tank.body.setOffset(-70, -35);
+        tank.hitbox = {
+            width: sprite.displayWidth * 0.7,
+            height: sprite.displayHeight * 0.55,
+            spriteAngle: Phaser.Math.DegToRad(sprite.angle)
+        };
+        updateTankHitbox(tank);
     }
 
     return tank;
+}
+
+function updateTankHitbox(tank) {
+    if (!tank.body || !tank.hitbox) return;
+
+    const angle = tank.rotation + tank.hitbox.spriteAngle;
+    const cos = Math.abs(Math.cos(angle));
+    const sin = Math.abs(Math.sin(angle));
+    const width = tank.hitbox.width * cos + tank.hitbox.height * sin;
+    const height = tank.hitbox.width * sin + tank.hitbox.height * cos;
+
+    tank.body.setSize(width, height);
+    tank.body.setOffset(-width / 2, -height / 2);
 }
 
 function showGameLoadingSplash() {
@@ -633,6 +650,7 @@ function showMatchResult(scene, winner) {
 function resetTank(tank, position) {
     tank.setPosition(position.x, position.y);
     tank.setRotation(position.rotation);
+    updateTankHitbox(tank);
     ensureTankVisible(tank);
     tank.body.reset(position.x, position.y);
     tank.body.enable = true;
@@ -882,6 +900,7 @@ function createTankInput(keyboard, bindings) {
 function updateTankMovement(tank, config, input) {
     if (input.left.isDown) tank.rotation -= config.rotationSpeed;
     if (input.right.isDown) tank.rotation += config.rotationSpeed;
+    updateTankHitbox(tank);
 
     const direction = input.up.isDown ? 1 : (input.down.isDown ? -1 : 0);
     if (direction !== 0) {
