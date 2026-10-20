@@ -148,6 +148,9 @@
             gameMusic.currentTime = 0;
         };
 
+        window.pauseGameMusic = () => gameMusic.pause();
+        window.resumeGameMusic = () => gameMusic.play().catch(() => {});
+
         clickSound.volume = 0.75;
         clickSound.load();
 
@@ -170,7 +173,7 @@
         });
 
         document.addEventListener('click', (event) => {
-            if (!event.target.closest('#builder-screen button')) return;
+            if (!event.target.closest('button')) return;
 
             playClickSound();
         }, true);

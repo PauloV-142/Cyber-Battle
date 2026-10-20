@@ -53,6 +53,7 @@ function createTankAudio(scene, tank) {
     };
     tank.movementState = 'stopped';
     tank.movementDirection = 0;
+    tank.movementAudioToken = 0;
     tank.audio.stopped.play();
     setSoundPan(scene, tank.audio.stopped, tank.x);
 }
@@ -64,19 +65,21 @@ function updateTankAudio(scene, tank, direction) {
 
     if (direction !== 0) {
         if (tank.movementDirection !== 0 && tank.movementDirection !== direction) {
+            tank.movementAudioToken += 1;
             stopSound(tank.audio.started);
             stopSound(tank.audio.stopping);
             stopSound(tank.audio.moving);
             tank.audio.moving.play();
             tank.movementState = 'moving';
         } else if (tank.movementState === 'stopped' || tank.movementState === 'stopping') {
+            const audioToken = ++tank.movementAudioToken;
             stopSound(tank.audio.stopped);
             stopSound(tank.audio.stopping);
             stopSound(tank.audio.moving);
             tank.audio.started.play();
             tank.movementState = 'starting';
             tank.audio.started.once('complete', () => {
-                if (tank.movementDirection !== 0 && tank.audio.started.isPlaying === false) {
+                if (audioToken === tank.movementAudioToken && tank.movementDirection !== 0 && tank.audio.started.isPlaying === false) {
                     tank.audio.moving.play();
                     tank.movementState = 'moving';
                 }
@@ -87,12 +90,13 @@ function updateTankAudio(scene, tank, direction) {
     }
 
     if (tank.movementDirection !== 0 && tank.movementState !== 'stopping' && tank.movementState !== 'stopped') {
+        const audioToken = ++tank.movementAudioToken;
         stopSound(tank.audio.started);
         stopSound(tank.audio.moving);
         tank.audio.stopping.play();
         tank.movementState = 'stopping';
         tank.audio.stopping.once('complete', () => {
-            if (tank.movementDirection === 0 && tank.audio.stopping.isPlaying === false) {
+            if (audioToken === tank.movementAudioToken && tank.movementDirection === 0 && tank.audio.stopping.isPlaying === false) {
                 tank.audio.stopped.play();
                 tank.movementState = 'stopped';
             }
@@ -111,6 +115,14 @@ function playTankRebirth(scene) {
     right.play();
     if (left && typeof left.setPan === 'function') left.setPan(-1);
     if (right && typeof right.setPan === 'function') right.setPan(1);
+}
+
+function playTankDeactivated(scene, tank) {
+    playRandomSound(scene, ['tankDeactivating'], tank.x, { volume: 0.55 });
+}
+
+function playTankScore(scene, tank) {
+    playRandomSound(scene, ['tankScore'], tank.x, { volume: 0.45 });
 }
 
 function stopProjectileSound(projectile) {
@@ -202,7 +214,7 @@ function buildPhaserConfig() {
             default: 'arcade',
             arcade: {
                 gravity: { y: 0 },
-                debug: true
+                debug: false
             }
         }
     };
@@ -491,6 +503,8 @@ function preload() {
     this.load.audio('tankMoving', 'assets/sounds/tank/movement/tankMoving.wav');
     this.load.audio('tankStoppingMovement', 'assets/sounds/tank/movement/tankStoppingMovement.mp3');
     this.load.audio('tankRebirth', 'assets/sounds/tank/tankRebirth.mp3');
+    this.load.audio('tankDeactivating', 'assets/sounds/tank/desactivated/tankDisactivating.mp3');
+    this.load.audio('tankScore', 'assets/sounds/battle/tankScore.mp3');
     this.load.audio('gameMusic1', 'assets/music/game/maksymmalko-game-gaming-minecraft-background-music-362844.mp3');
     this.load.audio('gameMusic2', 'assets/music/game/mondamusic-retro-arcade-game-music-512837.mp3');
     this.load.audio('gameMusic3', 'assets/music/game/nunusev-video-game-battle-music-535133.mp3');
@@ -644,6 +658,8 @@ function showMatchResult(scene, winner) {
             builderScreen.style.display = 'flex';
         }
     });
+    if (window.pauseGameMusic) window.pauseGameMusic();
+    scene.sound.pauseAll();
     scene.scene.pause();
 }
 
@@ -717,6 +733,8 @@ function handleProjectileHit(scene, projectile, target) {
         tank.life = Math.max(0, tank.life - ownerConfig.projectile.damage);
         ensureTankVisible(tank);
         if (tank.life <= 0) {
+            playTankDeactivated(scene, tank);
+            playTankScore(scene, tank);
             updateScoreboard(scene, projectile.owner);
             if (scene.scoreboard.one.score >= 3 || scene.scoreboard.two.score >= 3) {
                 showMatchResult(scene, projectile.owner);
@@ -734,6 +752,16 @@ function getProjectileFromCollision(first, second) {
     return [first, second]
         .map(getCollisionGameObject)
         .find((gameObject) => gameObject?.active && gameObject.owner);
+}
+
+function handleProjectileCollision(scene, first, second) {
+    const firstProjectile = getCollisionGameObject(first);
+    const secondProjectile = getCollisionGameObject(second);
+    if (!firstProjectile?.active || !secondProjectile?.active) return;
+
+    playRandomSound(scene, bulletHitSoundKeys, (firstProjectile.x + secondProjectile.x) / 2, { volume: 0.55 });
+    deactivateProjectile(scene, firstProjectile);
+    deactivateProjectile(scene, secondProjectile);
 }
 
 function centerBattleMap(scene, map) {
@@ -859,6 +887,9 @@ function create() {
         this.physics.add.collider(this.player2Projectiles, buildingsLayer, onProjectileBuildingCollision);
         this.physics.add.collider(this.player1Projectiles, this.player2, onPlayer1ProjectileTankCollision);
         this.physics.add.collider(this.player2Projectiles, this.player1, onPlayer2ProjectileTankCollision);
+        this.physics.add.collider(this.player1Projectiles, this.player2Projectiles, (first, second) => {
+            handleProjectileCollision(this, first, second);
+        });
         this.physics.world.on('worldbounds', (body) => {
             const projectile = body.gameObject;
             if (projectile && projectile.flyingSound) {
@@ -957,8 +988,15 @@ function toggleGamePause() {
     const button = document.getElementById('pause-game');
     if (!scene || !button) return;
     const isPaused = scene.scene.isPaused();
-    if (isPaused) scene.scene.resume();
-    else scene.scene.pause();
+    if (isPaused) {
+        scene.scene.resume();
+        scene.sound.resumeAll();
+        if (window.resumeGameMusic) window.resumeGameMusic();
+    } else {
+        scene.scene.pause();
+        scene.sound.pauseAll();
+        if (window.pauseGameMusic) window.pauseGameMusic();
+    }
     button.classList.toggle('is-paused', !isPaused);
     button.setAttribute('aria-pressed', String(!isPaused));
     button.setAttribute('aria-label', isPaused ? 'Pausar jogo' : 'Retomar jogo');
